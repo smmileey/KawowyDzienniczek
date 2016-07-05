@@ -2,16 +2,16 @@
     <string name="app_name">KawowyDzienniczek</string>
     
     <!-- Strings related to login -->
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password (optional)</string>
+    <string name="prompt_username">Użytkownik</string>
+    <string name="prompt_password">Hasło</string>
     <string name="action_sign_in">Zaloguj!</string>
     <string name="action_sign_in_short">Zaloguj!</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
+    <string name="error_invalid_email">Nieprawidłowy adres e-mail!</string>
+    <string name="error_invalid_password">Min. ilość znaków: 5</string>
+    <string name="error_incorrect_password">Nieprawidłowe hasło!</string>
+    <string name="error_field_required">To pole jest wymagane!</string>
+    <string name="permission_rationale">"Dostęp do kontaktów jest konieczny do procesu potwierdzenia rejestracji."
     </string>
+   <string name="hello_user">Zalogowano jako: </string>
     <string name="action_register">Nie masz konta? Kliknij <a href="">tutaj</a>, by utworzyć nowe!</string>
 </resources>
