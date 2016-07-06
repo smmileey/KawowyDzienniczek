@@ -6,6 +6,7 @@
     <string name="prompt_password">Hasło</string>
     <string name="action_sign_in">Zaloguj!</string>
     <string name="action_sign_in_short">Zaloguj!</string>
+    <string name="action_logout">Wyloguj</string>
     <string name="error_invalid_email">Nieprawidłowy adres e-mail!</string>
     <string name="error_invalid_password">Min. ilość znaków: 5</string>
     <string name="error_incorrect_password">Nieprawidłowe hasło!</string>
@@ -14,4 +15,5 @@
     </string>
    <string name="hello_user">Zalogowano jako: </string>
     <string name="action_register">Nie masz konta? Kliknij <a href="">tutaj</a>, by utworzyć nowe!</string>
+    <string name="coffee_shops_list">Pobierz listę kawiarni w zasięgu</string>
 </resources>

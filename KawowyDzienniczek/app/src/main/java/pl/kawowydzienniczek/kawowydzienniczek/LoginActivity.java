@@ -39,18 +39,22 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Services.LoginService;
+import Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Info.Generals;
+import pl.kawowydzienniczek.kawowydzienniczek.Info.LoginErrors;
+import pl.kawowydzienniczek.kawowydzienniczek.Info.URLS;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
     private static final int REQUEST_READ_CONTACTS = 0;
-    private static final String KAWOWY_DZIENNICZEK_BASE = "http://kawowydzienniczek.pl";
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -62,7 +66,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    private TextView mRegisterView;
     private ImageView mLogoView;
 
     @Override
@@ -70,7 +73,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         super.onCreate(savedInstanceState);
 
         SharedPreferences prefs = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
-        if(prefs.getBoolean("authenticated",false)){
+        if(prefs.getBoolean(Generals.AUTHENTICATED,false)){
             Intent intent = new Intent(getApplicationContext(),MainPageActivity.class);
             startActivity(intent);
             finish();
@@ -83,6 +86,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Set up the login form.
             mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
             populateAutoComplete();
+            mEmailView.setText(prefs.getString(Generals.LAST_EMAIL,""));
 
             mPasswordView = (EditText) findViewById(R.id.password);
             mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -107,7 +111,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mLoginFormView = findViewById(R.id.login_form);
             mProgressView = findViewById(R.id.login_progress);
 
-            mRegisterView = (TextView) findViewById(R.id.account_register);
+            TextView mRegisterView = (TextView) findViewById(R.id.account_register);
             mRegisterView.setMovementMethod(LinkMovementMethod.getInstance());
         }
     }
@@ -170,7 +174,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -217,6 +220,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
+            SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
+            editor.putString(Generals.LAST_EMAIL,mEmailView.getText().toString());
+            editor.apply();
             showProgress(true);
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
@@ -310,7 +316,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         };
 
         int ADDRESS = 0;
-        int IS_PRIMARY = 1;
+        //int IS_PRIMARY = 1;
     }
 
 
@@ -332,6 +338,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mEmail;
         private final String mPassword;
         private String token;
+        private HttpService.ResponseData responseData;
+        private HttpService httpService = new HttpService();
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -341,22 +349,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
 
-            LoginService.ResponseData rData;
             try {
-                LoginService loginService = new LoginService();
-                String response = loginService.postRequest(KAWOWY_DZIENNICZEK_BASE+ "/api-token-auth/", loginService.makeJsonUsername(mEmail,mPassword));
-                rData = loginService.getToken(response);
+                String response = httpService.postRequest(Generals.KAWOWY_DZIENNICZEK_BASE + URLS.API_TOKEN_AUTH, httpService.makeJsonUsername(mEmail,mPassword), null);
+                responseData = httpService.getToken(response);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 return false;
             }
 
-            if(rData.isValid()) {
-                token = rData.getToken();
+            if(responseData.isValid()) {
+                token = responseData.getToken();
                 return true;
             }
-            else
+            else{
                 return false;
+            }
         }
 
         @Override
@@ -367,14 +374,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (success) {
                 SharedPreferences.Editor prefs = getSharedPreferences(getString(R.string.app_name),
                         Context.MODE_PRIVATE).edit();
-                prefs.putBoolean("authenticated", true);
-                prefs.putString("username", "TU BĘDZIE USERNAME");
-                prefs.putString("token", token);
+                prefs.putBoolean(Generals.AUTHENTICATED, true);
+                prefs.putString(Generals.USERNAME, "TU BĘDZIE USERNAME");
+                prefs.putString(Generals.TOKEN, token);
                 prefs.apply();
                 Intent intent = new Intent(getApplicationContext(), MainPageActivity.class);
                 startActivity(intent);
             } else {
-                Toast.makeText(LoginActivity.this, "Nieprawidłowe dane!", Toast.LENGTH_SHORT).show(); //TODO: podać przyczynę braku możliwości zalogowania
+                HashMap<LoginErrors,String> errs = responseData.getErrors();
+                String msg = "";
+                for (Map.Entry<LoginErrors, String> entry: errs.entrySet()) {
+                    msg+= entry.getKey()+": "+entry.getValue()+"\n";
+                }
+                Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
             }
         }
 
