@@ -23,4 +23,6 @@
     <string name="btn_promotions">Promocje</string>
     <string name="title_offersactivity_list">Items</string>
     <string name="title_offersactivity_detail">OffersActivity Detail</string>
+    <string name="title_promotion_list">Promotions</string>
+    <string name="title_promotion_detail">Promotion Detail</string>
 </resources>

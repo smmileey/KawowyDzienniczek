@@ -2,6 +2,7 @@ package pl.kawowydzienniczek.kawowydzienniczek.Activities;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,21 +28,22 @@ import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
 
-public class OffersActivityDetailFragment extends Fragment {
+public class OffersDetailFragment extends Fragment {
 
     private HttpService httpService = new HttpService();
     private GeneralUtilMethods generalUtilMethods;
 
     private ProductDataTask mProductDataTask = null;
     private HttpService.ProductData productData;
-    private String product_id;
+    private String productId;
     private String token;
+    private String rawServerResponse;
     private Activity activity;
     private View rootView;
     private View mainLayout;
     private View progressView;
 
-    public OffersActivityDetailFragment() {
+    public OffersDetailFragment() {
         //mandatory
     }
 
@@ -49,16 +51,16 @@ public class OffersActivityDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(FragmentsArgumentsConstants.PRODUCT_ID)) {
+        if (getArguments().containsKey(FragmentsArgumentsConstants.OFFER_ID)) {
 
-            product_id = getArguments().getString(FragmentsArgumentsConstants.PRODUCT_ID);
+            productId = getArguments().getString(FragmentsArgumentsConstants.OFFER_ID);
             SharedPreferences prefs = this.getActivity().getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
             token = prefs.getString(GeneralConstants.TOKEN,null);
 
             activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-                appBarLayout.setTitle("Wczytywanie informacji o produkcie...");
+                appBarLayout.setTitle("Wczytywanie...");
             }
             generalUtilMethods = new GeneralUtilMethods(activity.getApplicationContext());
         }
@@ -75,7 +77,7 @@ public class OffersActivityDetailFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        if(this.getActivity() instanceof OffersActivityListActivity){
+        if(this.getActivity() instanceof OffersListActivity){
             mainLayout = this.getActivity().findViewById(R.id.frameLayout);
             progressView = this.getActivity().findViewById(R.id.progress_bar_offers_fragment);
         }else {
@@ -94,8 +96,8 @@ public class OffersActivityDetailFragment extends Fragment {
         protected Boolean doInBackground(Void... params) {
             try {
                 if(mProductDataTask != null) {
-                    String response = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PRODUCTS + product_id + "/", token);
-                    productData = httpService.getProductData(response);
+                    rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PRODUCTS + productId + "/", token);
+                    productData = httpService.getProductData(rawServerResponse);
                     return true;
                 }
             } catch (IOException | JSONException e) {
@@ -107,22 +109,34 @@ public class OffersActivityDetailFragment extends Fragment {
         @Override
         protected void onPostExecute(final Boolean success) {
             generalUtilMethods.showProgress(false,mainLayout,progressView);
+            mProductDataTask = null;
 
             if(success){
-                CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-                if (appBarLayout != null) {
-                    appBarLayout.setTitle(productData.getName());
+                try {
+                    if(httpService.isRequestAuthorized(rawServerResponse)) {
+                        CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
+                        if (appBarLayout != null) {
+                            appBarLayout.setTitle(productData.getName());
+                        }
+
+                        ((TextView) rootView.findViewById(R.id.product_name)).setText(productData.getName());
+                        ((TextView) rootView.findViewById(R.id.product_description)).setText(productData.getDescription());
+                        ImageView img = (ImageView) rootView.findViewById(R.id.product_image);
+                        Picasso.with(activity.getApplicationContext()).load(productData.getImg()).into(img);
+                        ((TextView) rootView.findViewById(R.id.product_price)).setText(productData.getPrice());
+                    }else {
+                        GeneralUtilMethods genUtils = new GeneralUtilMethods(activity.getApplicationContext());
+                        genUtils.ResetToken();
+                        Intent backToLogin = new Intent(activity.getApplicationContext(),LoginActivity.class);
+                        startActivity(backToLogin);
+                        activity.finish();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-
-                ((TextView)rootView.findViewById(R.id.product_name)).setText(productData.getName());
-                ((TextView)rootView.findViewById(R.id.product_description)).setText(productData.getDescription());
-                ImageView img = (ImageView)rootView.findViewById(R.id.product_image);
-                Picasso.with(activity.getApplicationContext()).load(productData.getImg()).into(img);
-                ((TextView)rootView.findViewById(R.id.product_price)).setText(productData.getPrice());
-
-                } else{
+            }
+            else{
                 Toast.makeText(activity.getApplicationContext(),"Brak informacji o podanym produkcie!",Toast.LENGTH_SHORT).show();
-                mProductDataTask = null;
             }
         }
 

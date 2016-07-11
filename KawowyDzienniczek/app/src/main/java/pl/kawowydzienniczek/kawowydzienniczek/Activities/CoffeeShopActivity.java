@@ -30,6 +30,7 @@ public class CoffeeShopActivity extends AppCompatActivity {
     private CoffeePreviewTask mCoffeeTask = null;
     private String token;
     private String coffeeId;
+    private String rawServerResponse;
 
     private HttpService service = new HttpService();
     private HttpService.CoffeePreviewData coffeePreviewData;
@@ -61,27 +62,31 @@ public class CoffeeShopActivity extends AppCompatActivity {
     }
 
     public void showOffers(View view){
-        Intent offerIntent = new Intent(getApplicationContext(),OffersActivityListActivity.class);
+        Intent offerIntent = new Intent(getApplicationContext(),OffersListActivity.class);
         offerIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeId);
         startActivity(offerIntent);
     }
 
     public void showPromotions(View view){
-
+        Intent offerIntent = new Intent(getApplicationContext(),PromotionListActivity.class);
+        offerIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeId);
+        startActivity(offerIntent);
     }
 
     public class CoffeePreviewTask extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            try {
-                String response = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PLACES + coffeeId +"/", token);
-                coffeePreviewData = service.getCoffeePreviewData(response);
-                return true;
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
-                return false;
+            if(mCoffeeTask != null) {
+                try {
+                    rawServerResponse  = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PLACES + coffeeId + "/", token);
+                    coffeePreviewData = service.getCoffeePreviewData(rawServerResponse);
+                    return true;
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
             }
+            return false;
         }
 
         @Override
@@ -90,15 +95,26 @@ public class CoffeeShopActivity extends AppCompatActivity {
             genUtils.showProgress(false, mCoffeeView, mProgressBar);
 
             if(success){
-                ImageView logoView = (ImageView) mCoffeeView.findViewById(R.id.image_logo_img);
-                ImageView screenView = (ImageView)mCoffeeView.findViewById(R.id.image_screen_img);
-                Picasso.with(getApplicationContext()).load(coffeePreviewData.getImage_logo()).resize(150,150).into(logoView);
-                Picasso.with(getApplicationContext()).load(coffeePreviewData.getImage_screen()).into(screenView);
+                try {
+                    if(service.isRequestAuthorized(rawServerResponse)) {
+                        ImageView logoView = (ImageView) mCoffeeView.findViewById(R.id.image_logo_img);
+                        ImageView screenView = (ImageView) mCoffeeView.findViewById(R.id.image_screen_img);
+                        Picasso.with(getApplicationContext()).load(coffeePreviewData.getImage_logo()).resize(150, 150).into(logoView);
+                        Picasso.with(getApplicationContext()).load(coffeePreviewData.getImage_screen()).into(screenView);
 
-                TextView titleView = (TextView)mCoffeeView.findViewById(R.id.single_coffee_title);
-                titleView.setText(coffeePreviewData.getName());
-                TextView localView = (TextView) mCoffeeView.findViewById(R.id.single_coffee_localization);
-                localView.setText(genService.getFormattedLocalization(coffeePreviewData.getLocalization()));
+                        TextView titleView = (TextView) mCoffeeView.findViewById(R.id.single_coffee_title);
+                        titleView.setText(coffeePreviewData.getName());
+                        TextView localView = (TextView) mCoffeeView.findViewById(R.id.single_coffee_localization);
+                        localView.setText(genService.getFormattedLocalization(coffeePreviewData.getLocalization()));
+                    }else {
+                        genUtils.ResetToken();
+                        Intent backToLogin = new Intent(getApplicationContext(),LoginActivity.class);
+                        startActivity(backToLogin);
+                        finish();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }else {
                 Toast.makeText(getApplicationContext(),"Coś poszło nie tak:P",Toast.LENGTH_SHORT).show();
             }

@@ -29,18 +29,32 @@
         <activity android:name=".Activities.CoffeeShopActivity" >
         </activity>
         <activity
-            android:name=".Activities.OffersActivityListActivity"
+            android:name=".Activities.OffersListActivity"
             android:label="@string/title_offersactivity_list"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name=".Activities.OffersActivityDetailActivity"
+            android:name=".Activities.OffersDetailActivity"
             android:label="@string/title_offersactivity_detail"
-            android:parentActivityName=".Activities.OffersActivityListActivity"
+            android:parentActivityName=".Activities.OffersListActivity"
             android:theme="@style/AppTheme.NoActionBar" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".Activities.OffersActivityListActivity" />
+                android:value=".Activities.OffersListActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.PromotionListActivity"
+            android:label="@string/title_promotion_list"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
+        <activity
+            android:name=".Activities.PromotionDetailActivity"
+            android:label="@string/title_promotion_detail"
+            android:parentActivityName=".Activities.PromotionListActivity"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListActivity" />
         </activity>
     </application>
 

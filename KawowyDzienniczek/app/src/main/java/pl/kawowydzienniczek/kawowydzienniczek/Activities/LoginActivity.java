@@ -229,8 +229,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             editor.putString(GeneralConstants.LAST_EMAIL,email);
             editor.apply();
 
-//            if(genUtils == null)
-//                genUtils = new GeneralUtilMethods(getApplicationContext());
             genUtils.showProgress(true,mLoginFormView,mProgressView);
 
             mAuthTask = new UserLoginTask(email, password);
@@ -302,10 +300,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailView.setAdapter(adapter);
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mEmail;
@@ -352,9 +346,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-
-//            if(genUtils == null)
-//                genUtils = new GeneralUtilMethods(getApplicationContext());
             genUtils.showProgress(false, mLoginFormView, mProgressView);
 
             if (success) {
@@ -378,9 +369,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onCancelled() {
             mAuthTask = null;
-
-//            if(genUtils == null)
-//                genUtils = new GeneralUtilMethods(getApplicationContext());
             genUtils.showProgress(false,mLoginFormView,mProgressView);
         }
     }

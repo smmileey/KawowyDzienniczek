@@ -5,8 +5,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.view.View;
+
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
 
 public class GeneralUtilMethods {
 
@@ -47,5 +51,12 @@ public class GeneralUtilMethods {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
             main.setVisibility(show ? View.GONE : View.VISIBLE);
         }
+    }
+
+    public void ResetToken(){
+        SharedPreferences.Editor editor = context.getSharedPreferences(context.getString(R.string.app_name), Context.MODE_PRIVATE).edit();
+        editor.putString(GeneralConstants.TOKEN, null);
+        editor.putBoolean(GeneralConstants.AUTHENTICATED, false);
+        editor.apply();
     }
 }

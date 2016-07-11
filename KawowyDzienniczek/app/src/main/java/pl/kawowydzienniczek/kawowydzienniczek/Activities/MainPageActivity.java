@@ -120,7 +120,7 @@ public class MainPageActivity extends AppCompatActivity {
                         mCofeeListView.setAdapter(cAdapater);
 
                     }else { //invalid data (np. token wygasł, itd.)
-                        ResetToken();
+                        genUtils.ResetToken();
                         Intent backToLogin = new Intent(getApplicationContext(),LoginActivity.class);
                         startActivity(backToLogin);
                         finish();
@@ -138,13 +138,6 @@ public class MainPageActivity extends AppCompatActivity {
         protected void onCancelled() {
             mGetTask = null;
             genUtils.showProgress(false,mMainView,mProgressBarView);
-        }
-
-        private void ResetToken(){
-            SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
-            editor.putString(GeneralConstants.TOKEN, null);
-            editor.putBoolean(GeneralConstants.AUTHENTICATED, false);
-            editor.apply();
         }
     }
 }

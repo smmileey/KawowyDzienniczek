@@ -22,7 +22,7 @@ public class ProductAdapter extends ArrayAdapter<HttpService.ProductData> {
     private final ArrayList<HttpService.ProductData> itemsArrayList;
 
     public ProductAdapter(Context context, ArrayList<HttpService.ProductData> itemsArrayList){
-        super(context, R.layout.lw_products, itemsArrayList);
+        super(context, R.layout.lw_offers, itemsArrayList);
         this.context = context;
         this.itemsArrayList = itemsArrayList;
     }
@@ -31,7 +31,7 @@ public class ProductAdapter extends ArrayAdapter<HttpService.ProductData> {
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if(convertView == null) {
-            convertView = inflater.inflate(R.layout.lw_products, parent, false);
+            convertView = inflater.inflate(R.layout.lw_offers, parent, false);
         }
 
         ImageView prodImageView = (ImageView)convertView.findViewById(R.id.product_image);

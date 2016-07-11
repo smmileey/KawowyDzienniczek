@@ -8,7 +8,7 @@
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     android:showDividers="middle"
-    tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.OffersActivityListActivity">
+    tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.OffersListActivity">
 
     <!--
     This layout is a two-pane layout for the Items
@@ -17,7 +17,7 @@
     -->
 
     <fragment android:id="@+id/offersactivity_list"
-        android:name="pl.kawowydzienniczek.kawowydzienniczek.Activities.OffersActivityListFragment"
+        android:name="pl.kawowydzienniczek.kawowydzienniczek.Activities.OffersListFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"

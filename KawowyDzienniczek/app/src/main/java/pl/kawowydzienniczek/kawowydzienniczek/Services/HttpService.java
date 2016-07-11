@@ -6,7 +6,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -58,6 +61,11 @@ public class HttpService {
         return object.toString();
     }
 
+    public Boolean isRequestAuthorized(String response) throws JSONException {
+        JSONObject obj = new JSONObject(response);
+        return obj.optString("detail").isEmpty();
+    }
+
     public ProductData getProductData(String response) throws JSONException {
         JSONObject json = new JSONObject(response);
         return  new ProductData(json.getString("id"),
@@ -65,6 +73,56 @@ public class HttpService {
                 json.getString("description"),
                 json.getString("price"),
                 json.getString("img"));
+    }
+
+    public PromotionData getPromotionData(String response) throws JSONException, ParseException {
+        JSONObject json = new JSONObject(response);
+        String startDate = json.getString("start_date"),
+                endDate= json.getString("end_date"),
+                format = "yyyy-MM-dd";
+        SimpleDateFormat dFormat = new SimpleDateFormat(format);
+
+        return new PromotionData(
+                json.getString("id"),
+                json.getString("name"),
+                json.getString("description"),
+                json.getString("code"),
+                json.getString("img"),
+                json.getString("status"),
+                json.getString("left_number"),
+                startDate.equals("null")? null: dFormat.parse(startDate),
+                startDate.equals("null")? null: dFormat.parse(endDate));
+    }
+
+    public List<PromotionData> getAllPromotionsData(String response, int coffeeShopId) throws JSONException, ParseException {
+        List<PromotionData> promData = new ArrayList<>();
+        JSONObject base = new JSONObject(response);
+        JSONArray results = base.getJSONArray("results");
+        JSONObject specfificOffer = results.getJSONObject(coffeeShopId - 1);
+        JSONArray promotions = specfificOffer.getJSONArray("promotions");
+        JSONObject tempJson;
+        String startDate,endDate, format = "yyyy-MM-dd";
+        SimpleDateFormat dFormat = new SimpleDateFormat(format);
+
+        for(int i=0;i<promotions.length();i++){
+            tempJson = promotions.getJSONObject(i);
+            startDate = tempJson.getString("start_date");
+            endDate = tempJson.getString("end_date");
+
+            PromotionData temp = new PromotionData(
+                    tempJson.getString("id"),
+                    tempJson.getString("name"),
+                    tempJson.getString("description"),
+                    tempJson.getString("code"),
+                    tempJson.getString("img"),
+                    tempJson.getString("status"),
+                    tempJson.getString("left_number"),
+                    startDate.equals("null")? null: dFormat.parse(startDate),
+                    startDate.equals("null")? null: dFormat.parse(endDate));
+
+            promData.add(temp);
+        }
+        return promData;
     }
 
     public List<OfferData> getOfferData(String response) throws JSONException {
@@ -107,12 +165,6 @@ public class HttpService {
                 json.getString("id"));
     }
 
-
-    public Boolean isRequestAuthorized(String response) throws JSONException {
-        JSONObject obj = new JSONObject(response);
-        return obj.optString("detail").isEmpty();
-    }
-
     public LoginResponseData getToken(String response) throws JSONException {
         JSONObject resJson = new JSONObject(response);
         HashMap<LoginErrors,String> hMap = new HashMap<>();
@@ -127,6 +179,73 @@ public class HttpService {
         }
     }
 
+    public class PromotionData{
+
+        private String id;
+        private String name;
+        private String description;
+        private String code;
+        private String image;
+        private String status;
+        private String left_number;
+        private Date start_date;
+        private Date end_date;
+
+        public PromotionData(String id, String name, String description, String code, String image, String status,
+                             String left_number, Date start_date, Date end_date){
+            this.id = id;
+            this.name = name;
+            this.description = description;
+            this.code = code;
+            this.image = image;
+            this.status = status;
+            this.left_number = left_number;
+            this. start_date = start_date;
+            this.end_date = end_date;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getImage() {
+            return image;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public String getLeft_number() {
+            return left_number;
+        }
+
+        public Date getStart_date() {
+            return start_date;
+        }
+
+        public Date getEnd_date() {
+            return end_date;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
+    }
+
     //different kind of response data
     public  class ProductData{
 
@@ -134,7 +253,7 @@ public class HttpService {
         private String name;
         private String description;
         private String price;
-        private String img;;
+        private String img;
 
         public  ProductData(String id, String name, String description, String price, String img){
             this.id = id;

@@ -1,33 +1,34 @@
 package pl.kawowydzienniczek.kawowydzienniczek.Activities;
 
-import android.support.v7.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.view.View;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 
-public class OffersActivityDetailActivity extends AppCompatActivity {
 
-    private String coffe_shop_id;
-    private String product_id;
+public class PromotionDetailActivity extends AppCompatActivity {
+
+    private String promotionId;
+    private String coffeeShopId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_offersactivity_detail);
+        setContentView(R.layout.activity_promotion_detail);
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
         Bundle bundle = getIntent().getExtras();
-        if(bundle != null) {
-            coffe_shop_id =bundle.getString(FragmentsArgumentsConstants.COFFEE_SHOP_ID);
-            product_id = bundle.getString(FragmentsArgumentsConstants.PRODUCT_ID);
+        if(bundle != null){
+            coffeeShopId = bundle.getString(FragmentsArgumentsConstants.COFFEE_SHOP_ID);
+            promotionId = bundle.getString(FragmentsArgumentsConstants.PROMOTION_ID);
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -39,7 +40,6 @@ public class OffersActivityDetailActivity extends AppCompatActivity {
             }
         });
 
-        // Show the Up button in the action bar.
         if(getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -48,12 +48,12 @@ public class OffersActivityDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(FragmentsArgumentsConstants.COFFEE_SHOP_ID,coffe_shop_id);
-            arguments.putString(FragmentsArgumentsConstants.PRODUCT_ID,product_id);
-            OffersActivityDetailFragment fragment = new OffersActivityDetailFragment();
+            arguments.putString(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeShopId);
+            arguments.putString(FragmentsArgumentsConstants.PROMOTION_ID, promotionId);
+            PromotionDetailFragment fragment = new PromotionDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.offersactivity_detail_container, fragment)
+                    .add(R.id.promotion_detail_container, fragment)
                     .commit();
         }
     }
@@ -63,8 +63,8 @@ public class OffersActivityDetailActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
-            Intent backIntent = new Intent(this, OffersActivityListActivity.class);
-            backIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID,coffe_shop_id);
+            Intent backIntent = new Intent(this, PromotionListActivity.class);
+            backIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeShopId);
             navigateUpTo(backIntent);
             return true;
         }

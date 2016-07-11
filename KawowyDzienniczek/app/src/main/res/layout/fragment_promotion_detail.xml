@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
     android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/offersactivity_detail"
@@ -15,7 +16,8 @@
         android:visibility="gone"
         android:layout_gravity="center"/>
 
-    <include layout="@layout/lw_offers"
-        android:id="@+id/product_detail_included_content">
+    <include layout="@layout/lw_promotions"
+        android:id="@+id/promotion_detail_included_content">
     </include>
+
 </LinearLayout>

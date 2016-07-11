@@ -8,17 +8,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 
+
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 
-public class OffersActivityListActivity extends AppCompatActivity
-        implements OffersActivityListFragment.Callbacks {
+public class PromotionListActivity extends AppCompatActivity
+        implements PromotionListFragment.Callbacks {
 
     private boolean mTwoPane;
-    private String coffeeID;
+    private String coffeeShopId;
 
-    public String getCoffeeID() {
-        return coffeeID;
+    public String getCoffeeShopId() {
+        return coffeeShopId;
     }
 
     @Override
@@ -27,8 +28,8 @@ public class OffersActivityListActivity extends AppCompatActivity
 
         Bundle bundle = getIntent().getExtras();
         if(bundle != null)
-            coffeeID = bundle.getString(FragmentsArgumentsConstants.COFFEE_SHOP_ID);
-        setContentView(R.layout.activity_offersactivity_app_bar);
+            coffeeShopId = bundle.getString(FragmentsArgumentsConstants.COFFEE_SHOP_ID);
+        setContentView(R.layout.activity_promotion_app_bar);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -43,7 +44,7 @@ public class OffersActivityListActivity extends AppCompatActivity
             }
         });
 
-        if (findViewById(R.id.offersactivity_detail_container) != null) {
+        if (findViewById(R.id.promotion_detail_container) != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-large and
             // res/values-sw600dp). If this view is present, then the
@@ -52,36 +53,31 @@ public class OffersActivityListActivity extends AppCompatActivity
 
             // In two-pane mode, list items should be given the
             // 'activated' state when touched.
-            ((OffersActivityListFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.offersactivity_list))
+            ((PromotionListFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.promotion_list))
                     .setActivateOnItemClick(true);
         }
     }
 
     /**
-     * Callback method from {@link OffersActivityListFragment.Callbacks}
+     * Callback method from {@link PromotionListFragment.Callbacks}
      * indicating that the item with the given ID was selected.
      */
     @Override
     public void onItemSelected(String id) {
         if (mTwoPane) {
-            // In two-pane mode, show the detail view in this activity by
-            // adding or replacing the detail fragment using a
-            // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(FragmentsArgumentsConstants.PRODUCT_ID, id);
-            OffersActivityDetailFragment fragment = new OffersActivityDetailFragment();
+            arguments.putString(FragmentsArgumentsConstants.PROMOTION_ID, id);
+            PromotionDetailFragment fragment = new PromotionDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.offersactivity_detail_container, fragment)
+                    .replace(R.id.promotion_detail_container, fragment)
                     .commit();
 
         } else {
-            // In single-pane mode, simply start the detail activity
-            // for the selected item ID.
-            Intent detailIntent = new Intent(this, OffersActivityDetailActivity.class);
-            detailIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID,coffeeID);
-            detailIntent.putExtra(FragmentsArgumentsConstants.PRODUCT_ID,id);
+            Intent detailIntent = new Intent(this, PromotionDetailActivity.class);
+            detailIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeShopId);
+            detailIntent.putExtra(FragmentsArgumentsConstants.PROMOTION_ID,id);
             startActivity(detailIntent);
         }
     }
