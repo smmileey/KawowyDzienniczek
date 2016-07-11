@@ -7,15 +7,18 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import pl.kawowydzienniczek.kawowydzienniczek.Globals.CoffeeAvailableData;
+
 public class JsonConverter {
 
-    public ArrayList<CoffeeItem> getCofeeItemsList(JSONArray array) throws JSONException {
+    public ArrayList<CoffeeAvailableData> getCofeeItemsList(JSONArray array) throws JSONException {
 
-        ArrayList<CoffeeItem> result = new ArrayList<>();
+        ArrayList<CoffeeAvailableData> result = new ArrayList<>();
 
         for(int i=0; i<array.length(); i++) {
             JSONObject jsonObj = array.getJSONObject(i);
-            result.add(new CoffeeItem(jsonObj.getString("name"), jsonObj.getString("description")));
+            result.add(new CoffeeAvailableData(jsonObj.getString("name"), jsonObj.getString("description"),
+                    jsonObj.getString("id")));
         }
         return result;
     }

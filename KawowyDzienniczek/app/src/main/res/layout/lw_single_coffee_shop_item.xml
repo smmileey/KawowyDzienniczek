@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:background="#FFEC8B"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:contentDescription="@string/desc_image"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:layout_alignParentStart="true"
+            android:id="@+id/image_logo_img"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/arrow_up_float"/>
+
+        <LinearLayout
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@+id/image_logo_img"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/single_coffee_title"
+                android:textStyle="bold"
+                android:textColor="#00008B"
+                android:textSize="20sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/single_coffee_localization"
+                android:textColor="#4169E1"
+                android:textSize="17sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <ImageView
+        android:contentDescription="@string/desc_image"
+        android:layout_marginTop="10dp"
+        android:id="@+id/image_screen_img"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        />
+</LinearLayout>

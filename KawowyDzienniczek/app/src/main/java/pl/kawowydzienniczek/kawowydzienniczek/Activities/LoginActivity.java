@@ -1,7 +1,5 @@
-package pl.kawowydzienniczek.kawowydzienniczek;
+package pl.kawowydzienniczek.kawowydzienniczek.Activities;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
@@ -35,6 +33,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -45,10 +45,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Services.HttpService;
-import pl.kawowydzienniczek.kawowydzienniczek.Info.Generals;
-import pl.kawowydzienniczek.kawowydzienniczek.Info.LoginErrors;
-import pl.kawowydzienniczek.kawowydzienniczek.Info.URLS;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.LoginErrors;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -67,13 +69,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
     private ImageView mLogoView;
+    private GeneralUtilMethods genUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         SharedPreferences prefs = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
-        if(prefs.getBoolean(Generals.AUTHENTICATED,false)){
+        if(prefs.getBoolean(GeneralConstants.AUTHENTICATED,false)){
             Intent intent = new Intent(getApplicationContext(),MainPageActivity.class);
             startActivity(intent);
             finish();
@@ -86,7 +89,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Set up the login form.
             mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
             populateAutoComplete();
-            mEmailView.setText(prefs.getString(Generals.LAST_EMAIL,""));
+            mEmailView.setText(prefs.getString(GeneralConstants.LAST_EMAIL, ""));
 
             mPasswordView = (EditText) findViewById(R.id.password);
             mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -113,6 +116,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             TextView mRegisterView = (TextView) findViewById(R.id.account_register);
             mRegisterView.setMovementMethod(LinkMovementMethod.getInstance());
+
+            genUtils = new GeneralUtilMethods(getApplicationContext());
         }
     }
 
@@ -221,9 +226,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
-            editor.putString(Generals.LAST_EMAIL,mEmailView.getText().toString());
+            editor.putString(GeneralConstants.LAST_EMAIL,email);
             editor.apply();
-            showProgress(true);
+
+//            if(genUtils == null)
+//                genUtils = new GeneralUtilMethods(getApplicationContext());
+            genUtils.showProgress(true,mLoginFormView,mProgressView);
+
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
         }
@@ -237,42 +246,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean isPasswordValid(String password) {
         return password.length() > 4;
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 
     @Override
@@ -338,7 +311,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mEmail;
         private final String mPassword;
         private String token;
-        private HttpService.ResponseData responseData;
+        private HttpService.LoginResponseData loginResponseData;
         private HttpService httpService = new HttpService();
 
         UserLoginTask(String email, String password) {
@@ -350,15 +323,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(Void... params) {
 
             try {
-                String response = httpService.postRequest(Generals.KAWOWY_DZIENNICZEK_BASE + URLS.API_TOKEN_AUTH, httpService.makeJsonUsername(mEmail,mPassword), null);
-                responseData = httpService.getToken(response);
+                String response = httpService.postRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_TOKEN_AUTH, httpService.makeJsonUsername(mEmail,mPassword), null);
+                loginResponseData = httpService.getToken(response);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 return false;
             }
 
-            if(responseData.isValid()) {
-                token = responseData.getToken();
+            if(loginResponseData.isValid()) {
+                token = loginResponseData.getToken();
+                try {
+                    String response = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PROFILE_DATA, token);
+                    HttpService.UserData uData = httpService.getUserData(response);
+                    SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
+                    Gson gson = new Gson();
+                    editor.putString(GeneralConstants.USER_PROFILE,gson.toJson(uData));
+                    editor.apply();
+                } catch (IOException|JSONException e) {
+                    e.printStackTrace();
+                }
                 return true;
             }
             else{
@@ -369,19 +352,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            showProgress(false);
+
+//            if(genUtils == null)
+//                genUtils = new GeneralUtilMethods(getApplicationContext());
+            genUtils.showProgress(false, mLoginFormView, mProgressView);
 
             if (success) {
                 SharedPreferences.Editor prefs = getSharedPreferences(getString(R.string.app_name),
                         Context.MODE_PRIVATE).edit();
-                prefs.putBoolean(Generals.AUTHENTICATED, true);
-                prefs.putString(Generals.USERNAME, "TU BĘDZIE USERNAME");
-                prefs.putString(Generals.TOKEN, token);
+                prefs.putBoolean(GeneralConstants.AUTHENTICATED, true);
+                prefs.putString(GeneralConstants.TOKEN, token);
                 prefs.apply();
                 Intent intent = new Intent(getApplicationContext(), MainPageActivity.class);
                 startActivity(intent);
             } else {
-                HashMap<LoginErrors,String> errs = responseData.getErrors();
+                HashMap<LoginErrors,String> errs = loginResponseData.getErrors();
                 String msg = "";
                 for (Map.Entry<LoginErrors, String> entry: errs.entrySet()) {
                     msg+= entry.getKey()+": "+entry.getValue()+"\n";
@@ -393,7 +378,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected void onCancelled() {
             mAuthTask = null;
-            showProgress(false);
+
+//            if(genUtils == null)
+//                genUtils = new GeneralUtilMethods(getApplicationContext());
+            genUtils.showProgress(false,mLoginFormView,mProgressView);
         }
     }
 }

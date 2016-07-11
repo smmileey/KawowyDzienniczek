@@ -6,7 +6,18 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="pl.kawowydzienniczek.kawowydzienniczek.MainPageActivity">
+    android:gravity="center_horizontal"
+    tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.MainPageActivity">
+
+    <!-- HttpService progress -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        style="?android:attr/progressBarStyleLarge" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -84,6 +95,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:divider="@drawable/lw_cofee_shop_divider"
-        android:dividerHeight="1dp"
-        />
+        android:dividerHeight="1dp" />
 </LinearLayout>

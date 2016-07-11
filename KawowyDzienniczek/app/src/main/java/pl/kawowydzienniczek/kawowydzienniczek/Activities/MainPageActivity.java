@@ -1,4 +1,4 @@
-package pl.kawowydzienniczek.kawowydzienniczek;
+package pl.kawowydzienniczek.kawowydzienniczek.Activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,27 +7,36 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import Services.HttpService;
-import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeAdapter;
-import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeItem;
-import pl.kawowydzienniczek.kawowydzienniczek.Info.Generals;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeAvailableAdapter;
+import pl.kawowydzienniczek.kawowydzienniczek.Globals.CoffeeAvailableData;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.JsonConverter;
-import pl.kawowydzienniczek.kawowydzienniczek.Info.URLS;
 
 public class MainPageActivity extends AppCompatActivity {
 
     private RetrieveGetTask mGetTask;
     private ListView mCofeeListView;
+    private View mMainView;
+    private View mProgressBarView;
+
     private String token;
+    private GeneralUtilMethods genUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,24 +45,41 @@ public class MainPageActivity extends AppCompatActivity {
 
         TextView tvUsername = (TextView) findViewById(R.id.username);
         mCofeeListView = (ListView)findViewById(R.id.lw_cofee_shops);
+        mMainView = findViewById(R.id.main_page);
+        mProgressBarView = findViewById(R.id.progress_bar);
 
         SharedPreferences prefs = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
-        if(prefs.getBoolean(Generals.AUTHENTICATED,false)) {
-            tvUsername.setText(prefs.getString(Generals.USERNAME, "NO-USERNAME-PROVIDED"));
+        token = prefs.getString(GeneralConstants.TOKEN,null);
+        Gson gson = new Gson();
+        HttpService.UserData userData = gson.fromJson(prefs.getString(GeneralConstants.USER_PROFILE, ""), HttpService.UserData.class);
+
+        if(prefs.getBoolean(GeneralConstants.AUTHENTICATED,false)) {
+            tvUsername.setText(userData.getUser().getUsername());
         }
 
-        token = prefs.getString(Generals.TOKEN,null);
+        mCofeeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CoffeeAvailableData lwData = (CoffeeAvailableData)mCofeeListView.getAdapter().getItem(position);
+                Intent intent = new Intent(getApplicationContext(), CoffeeShopActivity.class);
+                intent.putExtra(GeneralConstants.ID,lwData.getId());
+                startActivity(intent);
+            }
+        });
+
+        genUtils = new GeneralUtilMethods(getApplicationContext());
     }
 
     public void getCofeeShops(View view){
-       mGetTask = new RetrieveGetTask();
+        genUtils.showProgress(true,mMainView,mProgressBarView);
+        mGetTask = new RetrieveGetTask();
         mGetTask.execute((Void)null);
     }
 
     public void LogOut(View view){
         SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name),Context.MODE_PRIVATE).edit();
-        editor.putBoolean(Generals.AUTHENTICATED, false);
-        editor.putString(Generals.TOKEN, null);
+        editor.putBoolean(GeneralConstants.AUTHENTICATED, false);
+        editor.putString(GeneralConstants.TOKEN, null);
         editor.apply();
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);
@@ -70,7 +96,7 @@ public class MainPageActivity extends AppCompatActivity {
 
             if (token != null) {
                 try {
-                    rawResponseData = service.getRequest(Generals.KAWOWY_DZIENNICZEK_BASE + URLS.API_PLACES, token);
+                    rawResponseData = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PLACES, token);
                     return true;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -83,12 +109,14 @@ public class MainPageActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final Boolean success) {
             mGetTask = null;
+            genUtils.showProgress(false,mMainView,mProgressBarView);
+
             if(success) {
                 try {
                     if (service.isRequestAuthorized(rawResponseData)) {
                         JsonConverter conv = new JsonConverter();
-                        ArrayList<CoffeeItem> values = conv.getCofeeItemsList(new JSONObject(rawResponseData).getJSONArray("results"));
-                        CoffeeAdapter cAdapater = new CoffeeAdapter(getApplicationContext(), values);
+                        ArrayList<CoffeeAvailableData> values = conv.getCofeeItemsList(new JSONObject(rawResponseData).getJSONArray("results"));
+                        CoffeeAvailableAdapter cAdapater = new CoffeeAvailableAdapter(getApplicationContext(), values);
                         mCofeeListView.setAdapter(cAdapater);
 
                     }else { //invalid data (np. token wygasł, itd.)
@@ -107,14 +135,15 @@ public class MainPageActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onCancelled(){
+        protected void onCancelled() {
             mGetTask = null;
+            genUtils.showProgress(false,mMainView,mProgressBarView);
         }
 
         private void ResetToken(){
             SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
-            editor.putString(Generals.TOKEN, null);
-            editor.putBoolean(Generals.AUTHENTICATED, false);
+            editor.putString(GeneralConstants.TOKEN, null);
+            editor.putBoolean(GeneralConstants.AUTHENTICATED, false);
             editor.apply();
         }
     }
