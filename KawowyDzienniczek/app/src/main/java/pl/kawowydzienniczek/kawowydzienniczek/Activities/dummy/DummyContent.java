@@ -19,7 +19,7 @@ public class DummyContent {
     public static List<DummyItem> ITEMS = new ArrayList<DummyItem>();
 
     /**
-     * A map of sample (dummy) items, by ID.
+     * A map of sample (dummy) items, by COFFEE_SHOP_ID.
      */
     public static Map<String, DummyItem> ITEM_MAP = new HashMap<String, DummyItem>();
 

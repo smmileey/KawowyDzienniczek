@@ -32,36 +32,14 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            >
+            android:layout_height="wrap_content">
 
-            <RelativeLayout
-                android:orientation="horizontal"
+            <TextClock android:id="@+id/clock"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextClock
-                    android:id="@+id/clock"
-                    android:layout_toStartOf="@+id/btn_LogOut"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textSize="50sp"
-                    android:textColor="@android:color/holo_green_dark"
-                    />
-
-                <Button
-                    android:id="@+id/btn_LogOut"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentEnd="true"
-                    android:text="@string/action_logout"
-                    android:layout_centerVertical="true"
-                    android:onClick="LogOut"
-                    android:textColor="@android:color/white"
-                    android:background="@android:color/holo_blue_dark"
-                    />
-            </RelativeLayout>
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="50sp"
+                android:textColor="@android:color/holo_green_dark" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -83,22 +61,6 @@
                 android:textColor="@android:color/holo_red_light"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btn_get_cofees"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/coffee_shops_list"
-                android:textColor="@android:color/white"
-                android:background="@android:color/holo_blue_dark"
-                android:onClick="getCofeeShops"/>
         </LinearLayout>
     </ScrollView>
-
-    <ListView
-        android:layout_marginTop="10dp"
-        android:id="@+id/lw_cofee_shops"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:divider="@drawable/lw_cofee_shop_divider"
-        android:dividerHeight="1dp" />
 </LinearLayout>

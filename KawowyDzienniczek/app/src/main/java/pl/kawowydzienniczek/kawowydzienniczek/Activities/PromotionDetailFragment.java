@@ -52,7 +52,7 @@ public class PromotionDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(FragmentsArgumentsConstants.OFFER_ID)) {
+        if (getArguments().containsKey(FragmentsArgumentsConstants.PROMOTION_ID)) {
 
             promotionId = getArguments().getString(FragmentsArgumentsConstants.PROMOTION_ID);
             SharedPreferences prefs = this.getActivity().getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);

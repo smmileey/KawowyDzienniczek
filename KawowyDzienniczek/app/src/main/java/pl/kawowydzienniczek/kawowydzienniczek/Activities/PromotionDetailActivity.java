@@ -45,8 +45,6 @@ public class PromotionDetailActivity extends AppCompatActivity {
         }
 
         if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putString(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeShopId);
             arguments.putString(FragmentsArgumentsConstants.PROMOTION_ID, promotionId);

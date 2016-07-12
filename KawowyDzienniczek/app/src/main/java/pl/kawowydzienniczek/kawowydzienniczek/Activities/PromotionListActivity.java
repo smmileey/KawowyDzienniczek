@@ -61,7 +61,7 @@ public class PromotionListActivity extends AppCompatActivity
 
     /**
      * Callback method from {@link PromotionListFragment.Callbacks}
-     * indicating that the item with the given ID was selected.
+     * indicating that the item with the given COFFEE_SHOP_ID was selected.
      */
     @Override
     public void onItemSelected(String id) {

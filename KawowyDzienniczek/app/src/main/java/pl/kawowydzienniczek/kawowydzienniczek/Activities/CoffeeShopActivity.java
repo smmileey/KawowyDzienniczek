@@ -52,7 +52,7 @@ public class CoffeeShopActivity extends AppCompatActivity {
         token = prefs.getString(GeneralConstants.TOKEN, null);
         Bundle bundle= getIntent().getExtras();
         if(bundle != null){
-            coffeeId = bundle.getString(GeneralConstants.ID);
+            coffeeId = bundle.getString(GeneralConstants.COFFEE_SHOP_ID);
         }
 
         genUtils = new GeneralUtilMethods(getApplicationContext());
