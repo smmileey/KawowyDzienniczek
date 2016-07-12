@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -19,13 +20,13 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
-import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeAvailableAdapter;
 import pl.kawowydzienniczek.kawowydzienniczek.Globals.CoffeeAvailableData;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeAvailableAdapter;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.JsonConverter;
 
 public class MainPageActivity extends AppCompatActivity {
@@ -42,6 +43,9 @@ public class MainPageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_page);
+
+        Toolbar tb = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(tb);
 
         TextView tvUsername = (TextView) findViewById(R.id.username);
         mCofeeListView = (ListView)findViewById(R.id.lw_cofee_shops);
@@ -109,7 +113,7 @@ public class MainPageActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final Boolean success) {
             mGetTask = null;
-            genUtils.showProgress(false,mMainView,mProgressBarView);
+            genUtils.showProgress(false, mMainView, mProgressBarView);
 
             if(success) {
                 try {
@@ -137,7 +141,25 @@ public class MainPageActivity extends AppCompatActivity {
         @Override
         protected void onCancelled() {
             mGetTask = null;
-            genUtils.showProgress(false,mMainView,mProgressBarView);
+            genUtils.showProgress(false, mMainView, mProgressBarView);
         }
     }
+
+        public void onToolbarMenuClick(View v) {
+            switch (v.getId()){
+                case R.id.current_coffee:
+                    Toast.makeText(getApplicationContext(),"Aktualna Kawiarnia",Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.my_coffees:
+                    Toast.makeText(getApplicationContext(),"Moje Kawiarnie",Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.coffees_preview:
+                    Toast.makeText(getApplicationContext(),"Przegląd Kawiarni",Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.settings:
+                    Toast.makeText(getApplicationContext(),"Ustawienia",Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+
 }
