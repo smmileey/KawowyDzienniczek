@@ -29,4 +29,8 @@
     <string name="my_coffee_shops">Moje kawiarnie</string>
     <string name="preview_coffee_shops">Przeglądaj kawiarnie</string>
     <string name="settings">Ustawienia</string>
+    <string name="promotions_available">Dostępne</string>
+    <string name="promotions_active">Aktywne</string>
+    <string name="promotions_history">Historia</string>
+    <string name="loading">Loading\u2026</string>
 </resources>

@@ -101,7 +101,7 @@ public class PromotionDetailFragment extends Fragment {
                 try {
                     rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE+
                             UrlEndingsConstants.API_PROMOTIONS_SINGLE + promotionId + "/",token);
-                    promotionData = httpService.getPromotionData(rawServerResponse);
+                    promotionData = httpService.getSinglePromotionData(rawServerResponse);
                     return true;
                 } catch (IOException | JSONException | ParseException e) {
                     e.printStackTrace();
@@ -150,6 +150,5 @@ public class PromotionDetailFragment extends Fragment {
             mSinglePromotionDataTask = null;
             generalUtilMethods.showProgress(false,mainLayout,progressView);
         }
-
     }
 }

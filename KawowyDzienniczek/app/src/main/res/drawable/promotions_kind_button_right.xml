@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:viewportWidth="500"
+    android:viewportHeight="400"
+    android:height="120dp"
+    android:width="120dp">
+    <group>
+        <path
+            android:name="btn_left_clipped"
+            android:fillColor="@android:color/holo_blue_dark"
+            android:pathData="M30,0 L 150,0 150,20 0,20z">
+        </path>
+    </group>
+</vector>

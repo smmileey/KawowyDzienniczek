@@ -2,14 +2,15 @@ package pl.kawowydzienniczek.kawowydzienniczek.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
-
+import android.widget.Button;
 
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 
 public class PromotionListActivity extends AppCompatActivity
@@ -17,9 +18,15 @@ public class PromotionListActivity extends AppCompatActivity
 
     private boolean mTwoPane;
     private String coffeeShopId;
+    private String currentPromotionTab;
+    private Button currentTabButton;
 
     public String getCoffeeShopId() {
         return coffeeShopId;
+    }
+
+    public Button getCurrentTabButton() {
+        return currentTabButton;
     }
 
     @Override
@@ -27,9 +34,31 @@ public class PromotionListActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         Bundle bundle = getIntent().getExtras();
-        if(bundle != null)
+        if(bundle != null) {
             coffeeShopId = bundle.getString(FragmentsArgumentsConstants.COFFEE_SHOP_ID);
+        }
+
         setContentView(R.layout.activity_promotion_app_bar);
+
+        if(bundle != null) {
+            currentPromotionTab = bundle.getString(FragmentsArgumentsConstants.PROMOTION_CATEGORY);
+            if (currentPromotionTab == null) {
+                currentPromotionTab = GeneralConstants.PROMOTION_AVAILABLE;
+                currentTabButton = (Button) findViewById(R.id.btn_promotions_available);
+            } else {
+                switch (currentPromotionTab) {
+                    case GeneralConstants.PROMOTION_ACTIVE:
+                        currentTabButton = (Button) findViewById(R.id.btn_promotions_active);
+                        break;
+                    case GeneralConstants.PROMOTION_HISTORY:
+                        currentTabButton = (Button) findViewById(R.id.btn_promotions_history);
+                        break;
+                    case GeneralConstants.PROMOTION_AVAILABLE:
+                        currentTabButton = (Button)findViewById(R.id.btn_promotions_available);
+                }
+            }
+            currentTabButton.setPressed(true);
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -45,29 +74,22 @@ public class PromotionListActivity extends AppCompatActivity
         });
 
         if (findViewById(R.id.promotion_detail_container) != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-large and
-            // res/values-sw600dp). If this view is present, then the
-            // activity should be in two-pane mode.
+
             mTwoPane = true;
 
-            // In two-pane mode, list items should be given the
-            // 'activated' state when touched.
             ((PromotionListFragment) getSupportFragmentManager()
                     .findFragmentById(R.id.promotion_list))
                     .setActivateOnItemClick(true);
         }
+        ReplaceFragmentWithProductNames(currentPromotionTab);
     }
 
-    /**
-     * Callback method from {@link PromotionListFragment.Callbacks}
-     * indicating that the item with the given COFFEE_SHOP_ID was selected.
-     */
     @Override
     public void onItemSelected(String id) {
         if (mTwoPane) {
             Bundle arguments = new Bundle();
             arguments.putString(FragmentsArgumentsConstants.PROMOTION_ID, id);
+            arguments.putString(FragmentsArgumentsConstants.PROMOTION_CURRENT, currentPromotionTab);
             PromotionDetailFragment fragment = new PromotionDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -78,7 +100,39 @@ public class PromotionListActivity extends AppCompatActivity
             Intent detailIntent = new Intent(this, PromotionDetailActivity.class);
             detailIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeShopId);
             detailIntent.putExtra(FragmentsArgumentsConstants.PROMOTION_ID,id);
+            detailIntent.putExtra(FragmentsArgumentsConstants.PROMOTION_CURRENT, currentPromotionTab);
             startActivity(detailIntent);
         }
+    }
+
+    public void OnCategoryClick(View view){
+        switch (view.getId()){
+            case R.id.btn_promotions_available:
+                currentTabButton.setPressed(false);
+                currentTabButton = (Button)findViewById(R.id.btn_promotions_available);
+                ReplaceFragmentWithProductNames(GeneralConstants.PROMOTION_AVAILABLE);
+                break;
+            case R.id.btn_promotions_active:
+                currentTabButton.setPressed(false);
+                currentTabButton = (Button)findViewById(R.id.btn_promotions_active);
+                ReplaceFragmentWithProductNames(GeneralConstants.PROMOTION_ACTIVE);
+                break;
+            case R.id.btn_promotions_history:
+                currentTabButton.setPressed(false);
+                currentTabButton = (Button)findViewById(R.id.btn_promotions_history);
+                ReplaceFragmentWithProductNames(GeneralConstants.PROMOTION_HISTORY);
+                break;
+        }
+    }
+
+    private void ReplaceFragmentWithProductNames(String categoryKind){
+        currentPromotionTab = categoryKind;
+        PromotionListFragment listFragment = new PromotionListFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString(FragmentsArgumentsConstants.PROMOTION_CATEGORY, categoryKind);
+        listFragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.promtion_list_container,listFragment)
+                .commit();
     }
 }

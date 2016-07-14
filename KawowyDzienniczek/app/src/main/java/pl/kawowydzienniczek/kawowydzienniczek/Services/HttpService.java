@@ -62,6 +62,8 @@ public class HttpService {
     }
 
     public Boolean isRequestAuthorized(String response) throws JSONException {
+        if(response == null)
+            return false;
         JSONObject obj = new JSONObject(response);
         return obj.optString("detail").isEmpty();
     }
@@ -75,7 +77,21 @@ public class HttpService {
                 json.getString("img"));
     }
 
-    public PromotionData getPromotionData(String response) throws JSONException, ParseException {
+
+    public void getPersonalPromotionDataReplaceExisting(List<PromotionData> existing, String response, String status) throws JSONException, ParseException {
+        JSONObject json = new JSONObject(response);
+        JSONArray promotions = json.getJSONArray("results");
+        existing.clear();
+        for(int i=0;i<promotions.length();i++){
+            JSONObject temp = promotions.getJSONObject(i);
+            if(temp.getString("status").equals(status)) {
+                String prom = temp.getJSONObject("promotion").toString();
+                existing.add(getSinglePromotionData(prom));
+            }
+        }
+    }
+
+    public PromotionData getSinglePromotionData(String response) throws JSONException, ParseException {
         JSONObject json = new JSONObject(response);
         String startDate = json.getString("start_date"),
                 endDate= json.getString("end_date"),
@@ -92,6 +108,38 @@ public class HttpService {
                 json.getString("left_number"),
                 startDate.equals("null")? null: dFormat.parse(startDate),
                 startDate.equals("null")? null: dFormat.parse(endDate));
+    }
+
+    public void getAllPromotionsDataReplaceExisting(List<PromotionData> existing, String response, int coffeeShopId) throws JSONException, ParseException {
+        existing.clear();
+
+        JSONObject base = new JSONObject(response);
+        JSONArray results = base.getJSONArray("results");
+        JSONObject specfificOffer = results.getJSONObject(coffeeShopId - 1);
+        JSONArray promotions = specfificOffer.getJSONArray("promotions");
+        JSONObject tempJson;
+
+        String startDate,endDate, format = "yyyy-MM-dd";
+        SimpleDateFormat dFormat = new SimpleDateFormat(format);
+
+        for(int i=0;i<promotions.length();i++){
+            tempJson = promotions.getJSONObject(i);
+            startDate = tempJson.getString("start_date");
+            endDate = tempJson.getString("end_date");
+
+            PromotionData temp = new PromotionData(
+                    tempJson.getString("id"),
+                    tempJson.getString("name"),
+                    tempJson.getString("description"),
+                    tempJson.getString("code"),
+                    tempJson.getString("img"),
+                    tempJson.getString("status"),
+                    tempJson.getString("left_number"),
+                    startDate.equals("null")? null: dFormat.parse(startDate),
+                    startDate.equals("null")? null: dFormat.parse(endDate));
+
+            existing.add(temp);
+        }
     }
 
     public List<PromotionData> getAllPromotionsData(String response, int coffeeShopId) throws JSONException, ParseException {

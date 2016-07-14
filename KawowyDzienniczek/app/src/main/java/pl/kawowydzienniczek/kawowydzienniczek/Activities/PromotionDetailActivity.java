@@ -17,6 +17,7 @@ public class PromotionDetailActivity extends AppCompatActivity {
 
     private String promotionId;
     private String coffeeShopId;
+    private String currentPromotionTab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +30,7 @@ public class PromotionDetailActivity extends AppCompatActivity {
         if(bundle != null){
             coffeeShopId = bundle.getString(FragmentsArgumentsConstants.COFFEE_SHOP_ID);
             promotionId = bundle.getString(FragmentsArgumentsConstants.PROMOTION_ID);
+            currentPromotionTab = bundle.getString(FragmentsArgumentsConstants.PROMOTION_CURRENT);
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -63,6 +65,7 @@ public class PromotionDetailActivity extends AppCompatActivity {
         if (id == android.R.id.home) {
             Intent backIntent = new Intent(this, PromotionListActivity.class);
             backIntent.putExtra(FragmentsArgumentsConstants.COFFEE_SHOP_ID, coffeeShopId);
+            backIntent.putExtra(FragmentsArgumentsConstants.PROMOTION_CATEGORY,currentPromotionTab);
             navigateUpTo(backIntent);
             return true;
         }

@@ -9,5 +9,9 @@ public  class GeneralConstants {
     public static final String LAST_EMAIL = "last_email";
     public static final String USER_PROFILE = "user_profile";
 
+    public static final String PROMOTION_AVAILABLE = "prom_av";
+    public static final String PROMOTION_ACTIVE = "in_progress";
+    public static final String PROMOTION_HISTORY = "used";
+
     public static final String KAWOWY_DZIENNICZEK_BASE = "http://kawowydzienniczek.pl";
 }

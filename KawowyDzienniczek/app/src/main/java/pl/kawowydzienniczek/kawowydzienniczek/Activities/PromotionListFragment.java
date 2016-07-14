@@ -16,8 +16,10 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
@@ -31,7 +33,6 @@ public class PromotionListFragment extends ListFragment {
 
     private Callbacks mCallbacks = sDummyCallbacks;
     private HttpService httpService = new HttpService();
-    private GeneralUtilMethods genUtils;
 
     private int mActivatedPosition = ListView.INVALID_POSITION;
     private List<HttpService.PromotionData> adapterItems;
@@ -40,9 +41,8 @@ public class PromotionListFragment extends ListFragment {
 
     private String token;
     private String rawServerResponse;
-    private View mainLayout;
-    private View progressView;
     private String coffeeShopId;
+    private String promotionCategory;
 
     public interface Callbacks {
         void onItemSelected(String id);
@@ -65,8 +65,17 @@ public class PromotionListFragment extends ListFragment {
         token = prefs.getString(GeneralConstants.TOKEN, null);
 
         activity = this.getActivity();
-        genUtils = new GeneralUtilMethods(activity.getApplicationContext());
         coffeeShopId = ((PromotionListActivity)this.getActivity()).getCoffeeShopId();
+
+        promotionCategory = getArguments() == null?
+                GeneralConstants.PROMOTION_AVAILABLE: getArguments().getString(FragmentsArgumentsConstants.PROMOTION_CATEGORY);
+
+        adapterItems = new ArrayList<>();
+        setListAdapter(new ArrayAdapter<>(
+                getActivity(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                adapterItems));
     }
 
     @Override
@@ -84,10 +93,6 @@ public class PromotionListFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mainLayout = this.getActivity().findViewById(R.id.frameLayout);
-        progressView = this.getActivity().findViewById(R.id.progress_bar_promotions_fragment);
-
-        genUtils.showProgress(true,mainLayout,progressView);
         mPromotionDataTask = new PromotionDataTask();
         mPromotionDataTask.execute((Void)null);
     }
@@ -130,10 +135,6 @@ public class PromotionListFragment extends ListFragment {
         }
     }
 
-    /**
-     * Turns on activate-on-click mode. When this mode is on, list items will be
-     * given the 'activated' state when touched.
-     */
     public void setActivateOnItemClick(boolean activateOnItemClick) {
         // When setting CHOICE_MODE_SINGLE, ListView will automatically
         // give items the 'activated' state when touched.
@@ -158,10 +159,25 @@ public class PromotionListFragment extends ListFragment {
         protected Boolean doInBackground(Void... params) {
            if(mPromotionDataTask != null){
                try {
-                   rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
-                           + UrlEndingsConstants.API_PROMOTIONS_SET,token);
-                    adapterItems = httpService.getAllPromotionsData(rawServerResponse, Integer.parseInt(coffeeShopId));
-                   return true;
+                   switch (promotionCategory){
+                       case GeneralConstants.PROMOTION_AVAILABLE:
+                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
+                                   + UrlEndingsConstants.API_PROMOTIONS_SET, token);
+                           httpService.getAllPromotionsDataReplaceExisting(adapterItems, rawServerResponse, Integer.parseInt(coffeeShopId));
+                           return true;
+                       case GeneralConstants.PROMOTION_ACTIVE:
+                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
+                                   + UrlEndingsConstants.API_USER_PROMOTIONS, token);
+                           httpService.getPersonalPromotionDataReplaceExisting(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_ACTIVE);
+                           return true;
+                       case GeneralConstants.PROMOTION_HISTORY: //TODO: make filtering by active/history properly
+                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
+                               + UrlEndingsConstants.API_USER_PROMOTIONS, token);
+                           httpService.getPersonalPromotionDataReplaceExisting(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_HISTORY);
+                           return true;
+                       default:
+                           return false;
+                   }
                } catch (IOException | JSONException | ParseException e) {
                    e.printStackTrace();
                }
@@ -172,16 +188,12 @@ public class PromotionListFragment extends ListFragment {
         @Override
         protected void onPostExecute(final Boolean success) {
             mPromotionDataTask =null;
-            genUtils.showProgress(false, mainLayout, progressView);
 
             if(success){
                 try {
                     if(httpService.isRequestAuthorized(rawServerResponse)) {
-                        setListAdapter(new ArrayAdapter<>(
-                                getActivity(),
-                                android.R.layout.simple_list_item_activated_1,
-                                android.R.id.text1,
-                                adapterItems));
+                        ((ArrayAdapter)getListAdapter()).notifyDataSetChanged();
+                        ((PromotionListActivity)activity).getCurrentTabButton().setPressed(true);
                     }else {
                         GeneralUtilMethods genUtils = new GeneralUtilMethods(activity.getApplicationContext());
                         genUtils.ResetToken();
@@ -200,7 +212,6 @@ public class PromotionListFragment extends ListFragment {
         @Override
         protected void onCancelled() {
             mPromotionDataTask =null;
-            genUtils.showProgress(false, mainLayout, progressView);
         }
     }
 }

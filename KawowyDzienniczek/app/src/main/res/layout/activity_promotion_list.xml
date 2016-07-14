@@ -1,7 +1,62 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/promotion_list"
-    android:name="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListFragment"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:layout_marginLeft="16dp" android:layout_marginRight="16dp"
-    tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListActivity"
-    tools:layout="@android:layout/list_content" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:baselineAligned="false"
+    android:divider="?android:attr/dividerHorizontal"
+    android:orientation="vertical"
+    android:showDividers="middle"
+    tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListActivity">
+
+<LinearLayout
+    android:layout_marginTop="3dp"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <Button
+        android:id="@+id/btn_promotions_available"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/promotion_available_button_selector"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:text="@string/promotions_available"
+        android:onClick="OnCategoryClick"/>
+    <Button
+        android:id="@+id/btn_promotions_active"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/promotion_active_button_selector"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:text="@string/promotions_active"
+        android:onClick="OnCategoryClick"/>
+    <Button
+        android:id="@+id/btn_promotions_history"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/promotion_history_button_selector"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:text="@string/promotions_history"
+        android:onClick="OnCategoryClick"/>
+
+</LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/promtion_list_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp">
+    </FrameLayout>
+
+</LinearLayout>
