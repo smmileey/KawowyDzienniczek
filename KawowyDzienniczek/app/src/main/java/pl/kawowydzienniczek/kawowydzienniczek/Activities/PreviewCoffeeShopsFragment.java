@@ -1,12 +1,16 @@
 package pl.kawowydzienniczek.kawowydzienniczek.Activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -21,11 +25,11 @@ import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Globals.CoffeeAvailableData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeAvailableAdapter;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.JsonConverter;
 
-public class PreviewCoffeeShopsActivity extends AppCompatActivity {
+public class PreviewCoffeeShopsFragment extends Fragment {
 
     private RetrieveGetTask mGetTask;
     private ListView mCofeeListView;
@@ -33,36 +37,50 @@ public class PreviewCoffeeShopsActivity extends AppCompatActivity {
 
     private String token;
     private GeneralUtilMethods genUtils;
+    private Activity activity;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_preview_coffee_shops);
 
-        SharedPreferences prefs = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
+        activity = getActivity();
+        SharedPreferences prefs = activity.getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
         token = prefs.getString(GeneralConstants.TOKEN,null);
-        mCofeeListView = (ListView)findViewById(R.id.lw_cofee_shops);
-        mProgressBarView = findViewById(R.id.progress_bar);
+
+        genUtils = new GeneralUtilMethods(activity.getApplicationContext());
+    }
+
+    public PreviewCoffeeShopsFragment() {
+        // Required empty public constructor
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        View fragmentView = inflater.inflate(R.layout.fragment_preview_coffee_shops,container,false);
+        mCofeeListView = (ListView)fragmentView.findViewById(R.id.lw_cofee_shops);
+        mProgressBarView = fragmentView.findViewById(R.id.progress_bar);
 
         mCofeeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 CoffeeAvailableData lwData = (CoffeeAvailableData)mCofeeListView.getAdapter().getItem(position);
-                Intent intent = new Intent(getApplicationContext(), CoffeeShopActivity.class);
+                Intent intent = new Intent(activity.getApplicationContext(), CoffeeShopActivity.class);
                 intent.putExtra(GeneralConstants.COFFEE_SHOP_ID,lwData.getId());
                 startActivity(intent);
             }
         });
 
-        genUtils = new GeneralUtilMethods(getApplicationContext());
         genUtils.showProgress(true,mCofeeListView,mProgressBarView);
         mGetTask = new RetrieveGetTask();
         mGetTask.execute((Void) null);
+        return fragmentView;
     }
 
     public class RetrieveGetTask extends AsyncTask<Void, Void, Boolean> {
 
-        private HttpService service = new HttpService();
+        private KawowyDzienniczekService service = new KawowyDzienniczekService();
         private String rawResponseData;
 
         @Override
@@ -90,21 +108,21 @@ public class PreviewCoffeeShopsActivity extends AppCompatActivity {
                     if (service.isRequestAuthorized(rawResponseData)) {
                         JsonConverter conv = new JsonConverter();
                         ArrayList<CoffeeAvailableData> values = conv.getCofeeItemsList(new JSONObject(rawResponseData).getJSONArray("results"));
-                        CoffeeAvailableAdapter cAdapater = new CoffeeAvailableAdapter(getApplicationContext(), values);
+                        CoffeeAvailableAdapter cAdapater = new CoffeeAvailableAdapter(activity.getApplicationContext(), values);
                         mCofeeListView.setAdapter(cAdapater);
 
                     }else { //invalid data (np. token wygasł, itd.)
                         genUtils.ResetToken();
-                        Intent backToLogin = new Intent(getApplicationContext(),LoginActivity.class);
+                        Intent backToLogin = new Intent(activity.getApplicationContext(),LoginActivity.class);
                         startActivity(backToLogin);
-                        finish();
+                        activity.finish();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
             else {
-                Toast.makeText(PreviewCoffeeShopsActivity.this, "Pobranie listy kawiarni nie powiodło się (błąd serwera)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity.getApplicationContext(), "Pobranie listy kawiarni nie powiodło się (błąd serwera)", Toast.LENGTH_SHORT).show();
             }
         }
 

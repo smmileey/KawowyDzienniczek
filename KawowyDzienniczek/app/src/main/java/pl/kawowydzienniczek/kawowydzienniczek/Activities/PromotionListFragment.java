@@ -31,7 +31,7 @@ import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralService;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.PromotionForUserAdapter;
 
 public class PromotionListFragment extends ListFragment {
@@ -40,11 +40,11 @@ public class PromotionListFragment extends ListFragment {
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
     private Callbacks mCallbacks = sDummyCallbacks;
-    private HttpService httpService = new HttpService();
+    private KawowyDzienniczekService kawowyDzienniczekService = new KawowyDzienniczekService();
     private GeneralService genUtils = new GeneralService();
 
     private int mActivatedPosition = ListView.INVALID_POSITION;
-    private List<HttpService.PromotionData> adapterItems;
+    private List<KawowyDzienniczekService.PromotionData> adapterItems;
     private PromotionDataTask mPromotionDataTask = null;
     private Activity activity;
 
@@ -166,37 +166,42 @@ public class PromotionListFragment extends ListFragment {
                try {
                    switch (promotionCategory){
                        case GeneralConstants.PROMOTION_AVAILABLE:
-                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
+                           rawServerResponse = kawowyDzienniczekService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                    + UrlEndingsConstants.API_PLACES + coffeeShopId + "/", token);
-                           httpService.getAllPromotionsDataReplaceExisting(adapterItems, rawServerResponse, Integer.parseInt(coffeeShopId));
+                           kawowyDzienniczekService.getAvailablePromotionDataReplaceExistingList(adapterItems, rawServerResponse);
                            return true;
+
                        case GeneralConstants.PROMOTION_ACTIVE:
                            Gson gson = new Gson();
                            HashMap<String,String> args = new HashMap<>();
                            args.put(GeneralConstants.USER_PROMOTIONS_ACTIVE_ARGUMENT_PLACE,coffeeShopId);
-                           rawServerResponse = httpService.getRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
+                           rawServerResponse = kawowyDzienniczekService.getRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                    + UrlEndingsConstants.API_USER_PROMOTIONS, token,args);
 
                            SharedPreferences prefs = activity.getApplicationContext().getSharedPreferences(getString(R.string.app_name),
                                    Context.MODE_PRIVATE);
 
                            if(prefs.getBoolean(GeneralConstants.IS_ACTIVE_LIST_MODIFIED + coffeeShopId + user.getId(),true)) {
-                               httpService.getFirstPersonalPromotionData(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_ACTIVE);
+                               kawowyDzienniczekService.getPromotionDataByStatusReplaceExistingList(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_ACTIVE);
                                SharedPreferences.Editor editor = prefs.edit();
-                               editor.putString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId + user.getId() , gson.toJson(adapterItems));
+                               editor.putString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId + user.getId() ,
+                                       gson.toJson(adapterItems));
                                editor.putBoolean(GeneralConstants.IS_ACTIVE_LIST_MODIFIED + coffeeShopId + user.getId(), false);
                                editor.apply();
                            }else {
-                               Type promListType = new TypeToken<ArrayList<HttpService.PromotionData>>(){}.getType();
-                               List<HttpService.PromotionData> dataToPass = gson.fromJson(prefs.getString(GeneralConstants.USER_PROMOTIONS_ACTIVE
-                                       + coffeeShopId + user.getId(), null), promListType);
+                               Type promListType = new TypeToken<ArrayList<KawowyDzienniczekService.PromotionData>>(){}.getType();
+                               List<KawowyDzienniczekService.PromotionData> dataToPass = gson.fromJson(prefs.
+                                       getString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId + user.getId(), null), promListType);
                                genUtils.copyArrayListByValue(dataToPass,adapterItems);
                            }
                            return true;
-                       case GeneralConstants.PROMOTION_HISTORY: //TODO: make filtering by active/history properly
-                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
-                               + UrlEndingsConstants.API_USER_PROMOTIONS, token);
-                           httpService.getFirstPersonalPromotionData(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_HISTORY);
+
+                       case GeneralConstants.PROMOTION_HISTORY:
+                           HashMap<String,String> nargs = new HashMap<>();
+                           nargs.put(GeneralConstants.USER_PROMOTIONS_ACTIVE_ARGUMENT_PLACE,coffeeShopId);
+                           rawServerResponse = kawowyDzienniczekService.getRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
+                                   + UrlEndingsConstants.API_USER_PROMOTIONS, token, nargs);
+                           kawowyDzienniczekService.getPromotionDataByStatusReplaceExistingList(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_HISTORY);
                            return true;
                        default:
                            return false;
@@ -215,7 +220,7 @@ public class PromotionListFragment extends ListFragment {
 
             if(success){
                 try {
-                    if(httpService.isRequestAuthorized(rawServerResponse)) {
+                    if(kawowyDzienniczekService.isRequestAuthorized(rawServerResponse)) {
                         ((ArrayAdapter)getListAdapter()).notifyDataSetChanged();
                         ((PromotionListActivity)activity).getCurrentTabButton().setPressed(true);
                     }else {

@@ -26,15 +26,15 @@ import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
 public class OffersDetailFragment extends Fragment {
 
-    private HttpService httpService = new HttpService();
+    private KawowyDzienniczekService kawowyDzienniczekService = new KawowyDzienniczekService();
     private GeneralUtilMethods generalUtilMethods;
 
     private ProductDataTask mProductDataTask = null;
-    private HttpService.ProductData productData;
+    private KawowyDzienniczekService.ProductData productData;
     private String productId;
     private String token;
     private String rawServerResponse;
@@ -96,8 +96,8 @@ public class OffersDetailFragment extends Fragment {
         protected Boolean doInBackground(Void... params) {
             try {
                 if(mProductDataTask != null) {
-                    rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PRODUCTS + productId + "/", token);
-                    productData = httpService.getProductData(rawServerResponse);
+                    rawServerResponse = kawowyDzienniczekService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PRODUCTS + productId + "/", token);
+                    productData = kawowyDzienniczekService.getProductData(rawServerResponse);
                     return true;
                 }
             } catch (IOException | JSONException e) {
@@ -113,7 +113,7 @@ public class OffersDetailFragment extends Fragment {
 
             if(success){
                 try {
-                    if(httpService.isRequestAuthorized(rawServerResponse)) {
+                    if(kawowyDzienniczekService.isRequestAuthorized(rawServerResponse)) {
                         CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
                         if (appBarLayout != null) {
                             appBarLayout.setTitle(productData.getName());

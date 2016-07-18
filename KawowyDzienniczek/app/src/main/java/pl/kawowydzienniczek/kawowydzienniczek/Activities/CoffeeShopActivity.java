@@ -19,7 +19,7 @@ import java.io.IOException;
 
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralService;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
@@ -32,8 +32,8 @@ public class CoffeeShopActivity extends AppCompatActivity {
     private String coffeeId;
     private String rawServerResponse;
 
-    private HttpService service = new HttpService();
-    private HttpService.CoffeePreviewData coffeePreviewData;
+    private KawowyDzienniczekService service = new KawowyDzienniczekService();
+    private KawowyDzienniczekService.CoffeePreviewData coffeePreviewData;
     private GeneralService genService = new GeneralService();
     private GeneralUtilMethods genUtils;
 

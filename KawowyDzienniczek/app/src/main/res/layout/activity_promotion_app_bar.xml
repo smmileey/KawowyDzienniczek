@@ -16,7 +16,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <!-- HttpService progress -->
+    <!-- KawowyDzienniczekService progress -->
     <ProgressBar
         android:id="@+id/progress_bar_promotions_fragment"
         android:layout_width="wrap_content"

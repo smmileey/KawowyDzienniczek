@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.OffersDetailFragment">
 
-    <!-- HttpService progress -->
+    <!-- KawowyDzienniczekService progress -->
     <ProgressBar android:id="@+id/fragment_detail_product_progress"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"

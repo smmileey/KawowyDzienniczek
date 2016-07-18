@@ -58,7 +58,7 @@
                 android:value="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListActivity" />
         </activity>
         <activity
-            android:name=".Activities.PreviewCoffeeShopsActivity" >
+            android:name=".Activities.PreviewCoffeeShopsFragment" >
         </activity>
     </application>
 

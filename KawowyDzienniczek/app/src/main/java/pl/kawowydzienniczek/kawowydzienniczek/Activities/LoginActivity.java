@@ -46,7 +46,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.LoginErrors;
@@ -305,8 +305,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mEmail;
         private final String mPassword;
         private String token;
-        private HttpService.LoginResponseData loginResponseData;
-        private HttpService httpService = new HttpService();
+        private KawowyDzienniczekService.LoginResponseData loginResponseData;
+        private KawowyDzienniczekService kawowyDzienniczekService = new KawowyDzienniczekService();
 
         UserLoginTask(String email, String password) {
             mEmail = email;
@@ -317,8 +317,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(Void... params) {
 
             try {
-                String response = httpService.postRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_TOKEN_AUTH, httpService.makeJsonUsername(mEmail,mPassword), null);
-                loginResponseData = httpService.getToken(response);
+                String response = kawowyDzienniczekService.postRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_TOKEN_AUTH, kawowyDzienniczekService.makeJsonUsername(mEmail,mPassword), null);
+                loginResponseData = kawowyDzienniczekService.getToken(response);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 return false;
@@ -327,8 +327,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if(loginResponseData.isValid()) {
                 token = loginResponseData.getToken();
                 try {
-                    String response = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PROFILE_DATA, token);
-                    HttpService.UserData uData = httpService.getUserData(response);
+                    String response = kawowyDzienniczekService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PROFILE_DATA, token);
+                    KawowyDzienniczekService.UserData uData = kawowyDzienniczekService.getUserData(response);
                     SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
                     Gson gson = new Gson();
                     editor.putString(GeneralConstants.USER_PROFILE,gson.toJson(uData));

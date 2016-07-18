@@ -11,7 +11,7 @@
     android:orientation="vertical"
     tools:context="pl.kawowydzienniczek.kawowydzienniczek.Activities.CoffeeShopActivity">
 
-    <!-- HttpService progress -->
+    <!-- KawowyDzienniczekService progress -->
     <ProgressBar
         android:id="@+id/progress_bar_coffee_shop"
         android:layout_width="wrap_content"

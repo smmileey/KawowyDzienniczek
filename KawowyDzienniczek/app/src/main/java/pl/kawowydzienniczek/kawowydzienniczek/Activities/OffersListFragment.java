@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
@@ -28,12 +28,12 @@ public class OffersListFragment extends ListFragment {
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
     private Callbacks mCallbacks = sDummyCallbacks;
-    private HttpService httpService = new HttpService();
+    private KawowyDzienniczekService kawowyDzienniczekService = new KawowyDzienniczekService();
     private GeneralUtilMethods genUtils;
     private Activity activity;
 
     private int mActivatedPosition = ListView.INVALID_POSITION;
-    private List<HttpService.OfferData> adapterItems;
+    private List<KawowyDzienniczekService.OfferData> adapterItems;
     private OfferDataTask mOfferDataTask = null;
 
     private String token;
@@ -97,8 +97,8 @@ public class OffersListFragment extends ListFragment {
         protected Boolean doInBackground(Void... params) {
             if(mOfferDataTask != null) {
                 try {
-                    rawServerResponse  = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_OFFERS + coffeeShopId + "/", token);
-                    adapterItems = httpService.getOfferData(rawServerResponse);
+                    rawServerResponse  = kawowyDzienniczekService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_OFFERS + coffeeShopId + "/", token);
+                    adapterItems = kawowyDzienniczekService.getOfferData(rawServerResponse);
                     return true;
                 } catch (IOException | JSONException e) {
                     e.printStackTrace();
@@ -114,7 +114,7 @@ public class OffersListFragment extends ListFragment {
 
             if(success){
                 try {
-                    if(httpService.isRequestAuthorized(rawServerResponse)){
+                    if(kawowyDzienniczekService.isRequestAuthorized(rawServerResponse)){
                     setListAdapter(new ArrayAdapter<>(
                             getActivity(),
                             android.R.layout.simple_list_item_activated_1,

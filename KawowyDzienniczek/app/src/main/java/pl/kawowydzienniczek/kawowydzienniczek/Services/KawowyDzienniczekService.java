@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,7 @@ import okhttp3.Response;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.LoginErrors;
 import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
 
-public class HttpService {
+public class KawowyDzienniczekService {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -74,11 +75,18 @@ public class HttpService {
         }
     }
 
-    public String makeJsonUsername(String email, String password) throws JSONException {
-        JSONObject object = new JSONObject();
-        object.put("email",email);
-        object.put("password", password);
-        return object.toString();
+    public LoginResponseData getToken(String response) throws JSONException {
+        JSONObject resJson = new JSONObject(response);
+        HashMap<LoginErrors,String> hMap = new HashMap<>();
+        try {
+            String token = resJson.getString("token");
+            return new LoginResponseData(true, token, hMap);
+        }
+        catch (JSONException ex){
+            String error = resJson.optString("non_field_errors");
+            hMap.put(LoginErrors.GENERAL,error);
+            return new LoginResponseData(false, "none",hMap);
+        }
     }
 
     public Boolean isRequestAuthorized(String response) throws JSONException {
@@ -86,6 +94,13 @@ public class HttpService {
             return false;
         JSONObject obj = new JSONObject(response);
         return obj.optString("detail").isEmpty();
+    }
+
+    public String makeJsonUsername(String email, String password) throws JSONException {
+        JSONObject object = new JSONObject();
+        object.put("email",email);
+        object.put("password", password);
+        return object.toString();
     }
 
     public ProductData getProductData(String response) throws JSONException {
@@ -97,38 +112,44 @@ public class HttpService {
                 json.getString("img"));
     }
 
-    public void getFirstPersonalPromotionData(List<PromotionData> existing, String response, String status) throws JSONException, ParseException {
+    boolean isDateWithinRange(Date start, Date end, Date testDate) {
+        if(testDate == null)
+            return false;
+
+        if(start == null){
+            return end == null || !(testDate.after(end)); //always-on
+        }
+
+        if(end == null){
+            return !(testDate.before(start));
+        }
+        return !(testDate.before(start) || testDate.after(end));
+    }
+
+    public void getPromotionDataByStatusReplaceExistingList(List<PromotionData> existing, String response, String status) throws JSONException, ParseException {
         JSONObject json = new JSONObject(response);
         JSONArray promotions = json.getJSONArray("results");
         for(int i=0;i<promotions.length();i++){
             JSONObject temp = promotions.getJSONObject(i);
+
             if(temp.getString("status").equals(status)) {
-                String prom = temp.getJSONObject("promotion").toString();
-                existing.add(getSinglePromotionData(prom));
+                JSONObject singleProm = temp.getJSONObject("promotion");
+                String startDate = singleProm.getString("start_date"),
+                        endDate= singleProm.getString("end_date"),
+                        format = "yyyy-MM-dd";
+                SimpleDateFormat dFormat = new SimpleDateFormat(format);
+                Date sDate = startDate.equals("null") ? null: dFormat.parse(startDate);
+                Date eDate = endDate.equals("null")? null: dFormat.parse(endDate);
+                Date todayDate = Calendar.getInstance().getTime();
+
+                if(isDateWithinRange(sDate, eDate, todayDate)) {
+                    existing.add(getSinglePromotionData(singleProm,sDate,eDate));
+                }
             }
         }
     }
 
-    public PromotionData getSinglePromotionData(String response) throws JSONException, ParseException {
-        JSONObject json = new JSONObject(response);
-        String startDate = json.getString("start_date"),
-                endDate= json.getString("end_date"),
-                format = "yyyy-MM-dd";
-        SimpleDateFormat dFormat = new SimpleDateFormat(format);
-
-        return new PromotionData(
-                json.getString("id"),
-                json.getString("name"),
-                json.getString("description"),
-                json.getString("code"),
-                json.getString("img"),
-                json.getString("status"),
-                json.getString("left_number"),
-                startDate.equals("null")? null: dFormat.parse(startDate),
-                startDate.equals("null")? null: dFormat.parse(endDate));
-    }
-
-    public void getAllPromotionsDataReplaceExisting(List<PromotionData> existing, String response, int coffeeShopId) throws JSONException, ParseException {
+    public void getAvailablePromotionDataReplaceExistingList(List<PromotionData> existing, String response) throws JSONException, ParseException {
         existing.clear();
 
         JSONObject base = new JSONObject(response);
@@ -143,23 +164,18 @@ public class HttpService {
             tempJson = promotions.getJSONObject(i);
             startDate = tempJson.getString("start_date");
             endDate = tempJson.getString("end_date");
+            Date sDate = startDate.equals("null") ? null: dFormat.parse(startDate);
+            Date eDate = endDate.equals("null")? null: dFormat.parse(endDate);
+            Date todayDate = Calendar.getInstance().getTime();
 
-            PromotionData temp = new PromotionData(
-                    tempJson.getString("id"),
-                    tempJson.getString("name"),
-                    tempJson.getString("description"),
-                    tempJson.getString("code"),
-                    tempJson.getString("img"),
-                    tempJson.getString("status"),
-                    tempJson.getString("left_number"),
-                    startDate.equals("null")? null: dFormat.parse(startDate),
-                    startDate.equals("null")? null: dFormat.parse(endDate));
-
-            existing.add(temp);
+            if(isDateWithinRange(sDate, eDate, todayDate)) {
+                existing.add(getSinglePromotionData(tempJson,sDate,eDate));
+            }
         }
     }
 
-    public List<PromotionData> getAllPromotionsData(String response, int coffeeShopId) throws JSONException, ParseException {
+    //deprecated HEHE
+    public List<PromotionData> getAvailablePromotionsDataReturnNewList(String response, int coffeeShopId) throws JSONException, ParseException {
         List<PromotionData> promData = new ArrayList<>();
         JSONObject base = new JSONObject(response);
         JSONArray results = base.getJSONArray("results");
@@ -169,25 +185,49 @@ public class HttpService {
         String startDate,endDate, format = "yyyy-MM-dd";
         SimpleDateFormat dFormat = new SimpleDateFormat(format);
 
-        for(int i=0;i<promotions.length();i++){
+        for(int i=0;i<promotions.length();i++) {
             tempJson = promotions.getJSONObject(i);
             startDate = tempJson.getString("start_date");
             endDate = tempJson.getString("end_date");
+            Date sDate = startDate.equals("null") ? null : dFormat.parse(startDate);
+            Date eDate = endDate.equals("null") ? null : dFormat.parse(endDate);
+            Date todayDate = Calendar.getInstance().getTime();
 
-            PromotionData temp = new PromotionData(
-                    tempJson.getString("id"),
-                    tempJson.getString("name"),
-                    tempJson.getString("description"),
-                    tempJson.getString("code"),
-                    tempJson.getString("img"),
-                    tempJson.getString("status"),
-                    tempJson.getString("left_number"),
-                    startDate.equals("null")? null: dFormat.parse(startDate),
-                    startDate.equals("null")? null: dFormat.parse(endDate));
-
-            promData.add(temp);
+            if (isDateWithinRange(sDate, eDate, todayDate)) {
+                promData.add(getSinglePromotionData(tempJson,sDate,eDate));
+            }
         }
         return promData;
+    }
+
+    public PromotionData getSinglePromotionData(String response) throws JSONException, ParseException {
+        JSONObject json = new JSONObject(response);
+        SimpleDateFormat dFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String startDate = json.getString("start_date");
+        String endDate = json.getString("end_date");
+        Date sDate = startDate.equals("null") ? null : dFormat.parse(startDate);
+        Date eDate = endDate.equals("null") ? null : dFormat.parse(endDate);
+        Date todayDate = Calendar.getInstance().getTime();
+
+        if(isDateWithinRange(sDate,eDate,todayDate)) {
+            return getSinglePromotionData(json,sDate,eDate);
+        }
+        else {
+            return null;
+        }
+    }
+
+    private PromotionData getSinglePromotionData(JSONObject json, Date startDate, Date endDate) throws JSONException, ParseException {
+        return new PromotionData(
+                json.getString("id"),
+                json.getString("name"),
+                json.getString("description"),
+                json.getString("code"),
+                json.getString("img"),
+                json.getString("status"),
+                json.getString("left_number"),
+                startDate,
+                endDate);
     }
 
     public List<OfferData> getOfferData(String response) throws JSONException {
@@ -230,19 +270,6 @@ public class HttpService {
                 json.getString("id"));
     }
 
-    public LoginResponseData getToken(String response) throws JSONException {
-        JSONObject resJson = new JSONObject(response);
-        HashMap<LoginErrors,String> hMap = new HashMap<>();
-        try {
-            String token = resJson.getString("token");
-            return new LoginResponseData(true, token, hMap);
-        }
-        catch (JSONException ex){
-            String error = resJson.optString("non_field_errors");
-            hMap.put(LoginErrors.GENERAL,error);
-            return new LoginResponseData(false, "none",hMap);
-        }
-    }
 
     public class PromotionData{
 
