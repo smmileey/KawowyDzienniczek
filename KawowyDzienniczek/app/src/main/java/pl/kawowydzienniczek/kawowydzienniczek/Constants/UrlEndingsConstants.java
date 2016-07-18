@@ -11,4 +11,5 @@ public class UrlEndingsConstants {
     public static final String API_PROMOTIONS_SET = "/api/promotion_set/";
     public static final String API_PROMOTIONS_SINGLE = "/api/promotions/";
     public static final String API_USER_PROMOTIONS = "/api/user_promotions/";
+
 }

@@ -99,7 +99,7 @@ public class PromotionDetailFragment extends Fragment {
         protected Boolean doInBackground(Void... params) {
             if(mSinglePromotionDataTask != null){
                 try {
-                    rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE+
+                    rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME +
                             UrlEndingsConstants.API_PROMOTIONS_SINGLE + promotionId + "/",token);
                     promotionData = httpService.getSinglePromotionData(rawServerResponse);
                     return true;

@@ -12,6 +12,10 @@ public  class GeneralConstants {
     public static final String PROMOTION_AVAILABLE = "prom_av";
     public static final String PROMOTION_ACTIVE = "in_progress";
     public static final String PROMOTION_HISTORY = "used";
+    public static final String USER_PROMOTIONS_ACTIVE = "user_in_progress";
+    public static final String IS_ACTIVE_LIST_MODIFIED = "active_list_modified";
 
-    public static final String KAWOWY_DZIENNICZEK_BASE = "http://kawowydzienniczek.pl";
+    public static final String KAWOWY_DZIENNICZEK_WITH_SCHEME = "http://kawowydzienniczek.pl";
+
+    public static final String USER_PROMOTIONS_ACTIVE_ARGUMENT_PLACE = "place";
 }

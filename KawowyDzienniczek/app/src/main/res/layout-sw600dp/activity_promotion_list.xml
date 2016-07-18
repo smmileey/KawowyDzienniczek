@@ -53,18 +53,19 @@
         </LinearLayout>
 
     <LinearLayout
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:baselineAligned="false"
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
-        <fragment android:id="@+id/promotion_list"
-            android:name="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListFragment"
+        <FrameLayout
+            android:id="@+id/promotion_list_container"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="match_parent"
-            tools:layout="@android:layout/list_content" />
+            android:layout_height="match_parent">
+        </FrameLayout>
 
         <FrameLayout android:id="@+id/promotion_detail_container"
             android:layout_width="0dp"

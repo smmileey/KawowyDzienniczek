@@ -12,19 +12,27 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralService;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.HttpService;
+import pl.kawowydzienniczek.kawowydzienniczek.Utilities.PromotionForUserAdapter;
 
 public class PromotionListFragment extends ListFragment {
 
@@ -33,6 +41,7 @@ public class PromotionListFragment extends ListFragment {
 
     private Callbacks mCallbacks = sDummyCallbacks;
     private HttpService httpService = new HttpService();
+    private GeneralService genUtils = new GeneralService();
 
     private int mActivatedPosition = ListView.INVALID_POSITION;
     private List<HttpService.PromotionData> adapterItems;
@@ -40,6 +49,7 @@ public class PromotionListFragment extends ListFragment {
     private Activity activity;
 
     private String token;
+    private User user;
     private String rawServerResponse;
     private String coffeeShopId;
     private String promotionCategory;
@@ -63,6 +73,8 @@ public class PromotionListFragment extends ListFragment {
 
         SharedPreferences prefs = this.getActivity().getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
         token = prefs.getString(GeneralConstants.TOKEN, null);
+        Gson gson = new Gson();
+        user = gson.fromJson(prefs.getString(GeneralConstants.USER_PROFILE, null), User.class);
 
         activity = this.getActivity();
         coffeeShopId = ((PromotionListActivity)this.getActivity()).getCoffeeShopId();
@@ -71,11 +83,9 @@ public class PromotionListFragment extends ListFragment {
                 GeneralConstants.PROMOTION_AVAILABLE: getArguments().getString(FragmentsArgumentsConstants.PROMOTION_CATEGORY);
 
         adapterItems = new ArrayList<>();
-        setListAdapter(new ArrayAdapter<>(
-                getActivity(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                adapterItems));
+        PromotionForUserAdapter promAdapter = new PromotionForUserAdapter(activity.getApplicationContext(),
+                adapterItems,Integer.toString(user.getId()) ,coffeeShopId, promotionCategory);
+        setListAdapter(promAdapter);
     }
 
     @Override
@@ -94,7 +104,7 @@ public class PromotionListFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
 
         mPromotionDataTask = new PromotionDataTask();
-        mPromotionDataTask.execute((Void)null);
+        mPromotionDataTask.execute((Void) null);
     }
 
     @Override
@@ -113,7 +123,6 @@ public class PromotionListFragment extends ListFragment {
     public void onDetach() {
         super.onDetach();
 
-        // Reset the active callbacks interface to the dummy implementation.
         mCallbacks = sDummyCallbacks;
     }
 
@@ -121,8 +130,6 @@ public class PromotionListFragment extends ListFragment {
     public void onListItemClick(ListView listView, View view, int position, long id) {
         super.onListItemClick(listView, view, position, id);
 
-        // Notify the active callbacks interface (the activity, if the
-        // fragment is attached to one) that an item has been selected.
         mCallbacks.onItemSelected(adapterItems.get(position).getId());
     }
 
@@ -136,8 +143,6 @@ public class PromotionListFragment extends ListFragment {
     }
 
     public void setActivateOnItemClick(boolean activateOnItemClick) {
-        // When setting CHOICE_MODE_SINGLE, ListView will automatically
-        // give items the 'activated' state when touched.
         getListView().setChoiceMode(activateOnItemClick
                 ? ListView.CHOICE_MODE_SINGLE
                 : ListView.CHOICE_MODE_NONE);
@@ -161,28 +166,47 @@ public class PromotionListFragment extends ListFragment {
                try {
                    switch (promotionCategory){
                        case GeneralConstants.PROMOTION_AVAILABLE:
-                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
-                                   + UrlEndingsConstants.API_PROMOTIONS_SET, token);
+                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
+                                   + UrlEndingsConstants.API_PLACES + coffeeShopId + "/", token);
                            httpService.getAllPromotionsDataReplaceExisting(adapterItems, rawServerResponse, Integer.parseInt(coffeeShopId));
                            return true;
                        case GeneralConstants.PROMOTION_ACTIVE:
-                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
-                                   + UrlEndingsConstants.API_USER_PROMOTIONS, token);
-                           httpService.getPersonalPromotionDataReplaceExisting(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_ACTIVE);
+                           Gson gson = new Gson();
+                           HashMap<String,String> args = new HashMap<>();
+                           args.put(GeneralConstants.USER_PROMOTIONS_ACTIVE_ARGUMENT_PLACE,coffeeShopId);
+                           rawServerResponse = httpService.getRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
+                                   + UrlEndingsConstants.API_USER_PROMOTIONS, token,args);
+
+                           SharedPreferences prefs = activity.getApplicationContext().getSharedPreferences(getString(R.string.app_name),
+                                   Context.MODE_PRIVATE);
+
+                           if(prefs.getBoolean(GeneralConstants.IS_ACTIVE_LIST_MODIFIED + coffeeShopId + user.getId(),true)) {
+                               httpService.getFirstPersonalPromotionData(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_ACTIVE);
+                               SharedPreferences.Editor editor = prefs.edit();
+                               editor.putString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId + user.getId() , gson.toJson(adapterItems));
+                               editor.putBoolean(GeneralConstants.IS_ACTIVE_LIST_MODIFIED + coffeeShopId + user.getId(), false);
+                               editor.apply();
+                           }else {
+                               Type promListType = new TypeToken<ArrayList<HttpService.PromotionData>>(){}.getType();
+                               List<HttpService.PromotionData> dataToPass = gson.fromJson(prefs.getString(GeneralConstants.USER_PROMOTIONS_ACTIVE
+                                       + coffeeShopId + user.getId(), null), promListType);
+                               genUtils.copyArrayListByValue(dataToPass,adapterItems);
+                           }
                            return true;
                        case GeneralConstants.PROMOTION_HISTORY: //TODO: make filtering by active/history properly
-                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE
+                           rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                + UrlEndingsConstants.API_USER_PROMOTIONS, token);
-                           httpService.getPersonalPromotionDataReplaceExisting(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_HISTORY);
+                           httpService.getFirstPersonalPromotionData(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_HISTORY);
                            return true;
                        default:
                            return false;
                    }
-               } catch (IOException | JSONException | ParseException e) {
+               } catch (IOException | JSONException | ParseException |IllegalStateException e) {
                    e.printStackTrace();
+                   return false;
                }
-           }
-            return false;
+           }else
+                return false;
         }
 
         @Override
@@ -205,7 +229,7 @@ public class PromotionListFragment extends ListFragment {
                     e.printStackTrace();
                 }
             }else {
-                Toast.makeText(activity.getApplicationContext(), "Brak promocji do pobrania!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity.getApplicationContext(), "Take it easy bro!/or Server error hehe", Toast.LENGTH_SHORT).show();
             }
         }
 

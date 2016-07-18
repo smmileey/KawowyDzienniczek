@@ -78,7 +78,7 @@ public class PromotionListActivity extends AppCompatActivity
             mTwoPane = true;
 
             ((PromotionListFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.promotion_list))
+                    .findFragmentById(R.id.promotion_list_container))
                     .setActivateOnItemClick(true);
         }
         ReplaceFragmentWithProductNames(currentPromotionTab);
@@ -132,7 +132,7 @@ public class PromotionListActivity extends AppCompatActivity
         arguments.putString(FragmentsArgumentsConstants.PROMOTION_CATEGORY, categoryKind);
         listFragment.setArguments(arguments);
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.promtion_list_container,listFragment)
+                .replace(R.id.promotion_list_container,listFragment)
                 .commit();
     }
 }

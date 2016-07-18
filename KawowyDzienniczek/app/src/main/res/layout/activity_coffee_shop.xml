@@ -21,37 +21,49 @@
         android:layout_gravity="center"
         style="?android:attr/progressBarStyleLarge" />
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <include layout="@layout/lw_single_coffee_shop_item"
-            android:id="@+id/included_layout">
-        </include>
-    </LinearLayout>
 
-    <Button
-        android:layout_marginTop="6dp"
-        android:id="@+id/btn_offers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:drawableStart="@android:drawable/btn_star"
-        android:text="@string/btn_offer"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:background="@android:color/holo_blue_dark"
-        android:onClick="showOffers"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <Button
-        android:layout_marginTop="6dp"
-        android:id="@+id/btn_promotions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:drawableStart="@android:drawable/btn_star"
-        android:text="@string/btn_promotions"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:background="@android:color/holo_blue_dark"
-        android:onClick="showPromotions"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <include layout="@layout/lw_single_coffee_shop_item"
+                    android:id="@+id/included_layout">
+                </include>
+            </LinearLayout>
+
+            <Button
+                android:layout_marginTop="6dp"
+                android:id="@+id/btn_offers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:drawableStart="@android:drawable/btn_star"
+                android:text="@string/btn_offer"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:background="@android:color/holo_blue_dark"
+                android:onClick="showOffers"/>
+
+            <Button
+                android:layout_marginTop="6dp"
+                android:id="@+id/btn_promotions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:drawableStart="@android:drawable/btn_star"
+                android:text="@string/btn_promotions"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:background="@android:color/holo_blue_dark"
+                android:onClick="showPromotions"/>
+
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

@@ -317,7 +317,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(Void... params) {
 
             try {
-                String response = httpService.postRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_TOKEN_AUTH, httpService.makeJsonUsername(mEmail,mPassword), null);
+                String response = httpService.postRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_TOKEN_AUTH, httpService.makeJsonUsername(mEmail,mPassword), null);
                 loginResponseData = httpService.getToken(response);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
@@ -327,7 +327,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if(loginResponseData.isValid()) {
                 token = loginResponseData.getToken();
                 try {
-                    String response = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PROFILE_DATA, token);
+                    String response = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PROFILE_DATA, token);
                     HttpService.UserData uData = httpService.getUserData(response);
                     SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
                     Gson gson = new Gson();

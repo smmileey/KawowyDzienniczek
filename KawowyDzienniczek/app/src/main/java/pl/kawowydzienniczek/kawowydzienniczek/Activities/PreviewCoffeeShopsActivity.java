@@ -70,7 +70,7 @@ public class PreviewCoffeeShopsActivity extends AppCompatActivity {
 
             if (token != null) {
                 try {
-                    rawResponseData = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PLACES, token);
+                    rawResponseData = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PLACES, token);
                     return true;
                 } catch (Exception e) {
                     e.printStackTrace();

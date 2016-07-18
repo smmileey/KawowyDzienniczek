@@ -53,7 +53,7 @@
 </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/promtion_list_container"
+        android:id="@+id/promotion_list_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp">

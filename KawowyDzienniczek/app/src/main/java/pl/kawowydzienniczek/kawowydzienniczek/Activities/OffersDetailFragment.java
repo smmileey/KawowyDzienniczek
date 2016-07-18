@@ -96,7 +96,7 @@ public class OffersDetailFragment extends Fragment {
         protected Boolean doInBackground(Void... params) {
             try {
                 if(mProductDataTask != null) {
-                    rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PRODUCTS + productId + "/", token);
+                    rawServerResponse = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PRODUCTS + productId + "/", token);
                     productData = httpService.getProductData(rawServerResponse);
                     return true;
                 }

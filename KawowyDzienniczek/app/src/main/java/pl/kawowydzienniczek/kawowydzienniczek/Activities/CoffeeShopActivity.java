@@ -79,7 +79,7 @@ public class CoffeeShopActivity extends AppCompatActivity {
         protected Boolean doInBackground(Void... params) {
             if(mCoffeeTask != null) {
                 try {
-                    rawServerResponse  = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_PLACES + coffeeId + "/", token);
+                    rawServerResponse  = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PLACES + coffeeId + "/", token);
                     coffeePreviewData = service.getCoffeePreviewData(rawServerResponse);
                     return true;
                 } catch (IOException | JSONException e) {

@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -54,6 +56,24 @@ public class HttpService {
         }
     }
 
+    public String getRequestWithParameters(String url, String auth, Map<String,String> params) throws IOException {
+        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+        for (Map.Entry<String, String> param: params.entrySet()) {
+            urlBuilder = urlBuilder.addQueryParameter(param.getKey(),param.getValue());
+        }
+        String parametrizedUrl = urlBuilder.build().toString();
+        Request.Builder builder = new Request.Builder().url(parametrizedUrl);
+
+        if(auth != null)
+            builder = builder.addHeader("Authorization", "Token " + auth);
+        Request request = builder
+                .get()
+                .build();
+        try(Response response = client.newCall(request).execute()){
+            return response.body().string();
+        }
+    }
+
     public String makeJsonUsername(String email, String password) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("email",email);
@@ -77,11 +97,9 @@ public class HttpService {
                 json.getString("img"));
     }
 
-
-    public void getPersonalPromotionDataReplaceExisting(List<PromotionData> existing, String response, String status) throws JSONException, ParseException {
+    public void getFirstPersonalPromotionData(List<PromotionData> existing, String response, String status) throws JSONException, ParseException {
         JSONObject json = new JSONObject(response);
         JSONArray promotions = json.getJSONArray("results");
-        existing.clear();
         for(int i=0;i<promotions.length();i++){
             JSONObject temp = promotions.getJSONObject(i);
             if(temp.getString("status").equals(status)) {
@@ -114,9 +132,8 @@ public class HttpService {
         existing.clear();
 
         JSONObject base = new JSONObject(response);
-        JSONArray results = base.getJSONArray("results");
-        JSONObject specfificOffer = results.getJSONObject(coffeeShopId - 1);
-        JSONArray promotions = specfificOffer.getJSONArray("promotions");
+        JSONObject promotionTag = base.getJSONObject("promotion");
+        JSONArray promotions = promotionTag.getJSONArray("promotions");
         JSONObject tempJson;
 
         String startDate,endDate, format = "yyyy-MM-dd";
@@ -291,6 +308,20 @@ public class HttpService {
         @Override
         public String toString() {
             return description;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            PromotionData that = (PromotionData) o;
+            return id.equals(that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            return id.hashCode();
         }
     }
 

@@ -97,7 +97,7 @@ public class OffersListFragment extends ListFragment {
         protected Boolean doInBackground(Void... params) {
             if(mOfferDataTask != null) {
                 try {
-                    rawServerResponse  = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_BASE + UrlEndingsConstants.API_OFFERS + coffeeShopId + "/", token);
+                    rawServerResponse  = httpService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_OFFERS + coffeeShopId + "/", token);
                     adapterItems = httpService.getOfferData(rawServerResponse);
                     return true;
                 } catch (IOException | JSONException e) {
