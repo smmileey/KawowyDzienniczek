@@ -16,6 +16,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralService;
@@ -82,7 +83,7 @@ public class CoffeeShopActivity extends AppCompatActivity {
                     rawServerResponse  = service.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PLACES + coffeeId + "/", token);
                     coffeePreviewData = service.getCoffeePreviewData(rawServerResponse);
                     return true;
-                } catch (IOException | JSONException e) {
+                } catch (IOException | JSONException | ParseException e) {
                     e.printStackTrace();
                 }
             }

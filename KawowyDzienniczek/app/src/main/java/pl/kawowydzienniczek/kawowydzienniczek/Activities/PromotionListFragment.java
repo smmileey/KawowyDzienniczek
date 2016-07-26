@@ -80,7 +80,7 @@ public class PromotionListFragment extends ListFragment {
         coffeeShopId = ((PromotionListActivity)this.getActivity()).getCoffeeShopId();
 
         promotionCategory = getArguments() == null?
-                GeneralConstants.PROMOTION_AVAILABLE: getArguments().getString(FragmentsArgumentsConstants.PROMOTION_CATEGORY);
+                GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE : getArguments().getString(FragmentsArgumentsConstants.PROMOTION_CATEGORY);
 
         adapterItems = new ArrayList<>();
         PromotionForUserAdapter promAdapter = new PromotionForUserAdapter(activity.getApplicationContext(),
@@ -165,24 +165,29 @@ public class PromotionListFragment extends ListFragment {
            if(mPromotionDataTask != null){
                try {
                    switch (promotionCategory){
-                       case GeneralConstants.PROMOTION_AVAILABLE:
+                       case GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE:
                            rawServerResponse = kawowyDzienniczekService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                    + UrlEndingsConstants.API_PLACES + coffeeShopId + "/", token);
                            kawowyDzienniczekService.getAvailablePromotionDataReplaceExistingList(adapterItems, rawServerResponse);
                            return true;
 
-                       case GeneralConstants.PROMOTION_ACTIVE:
+                       case GeneralConstants.USER_PROMOTION_PROGRESS_ACTIVE:
                            Gson gson = new Gson();
                            HashMap<String,String> args = new HashMap<>();
                            args.put(GeneralConstants.USER_PROMOTIONS_ACTIVE_ARGUMENT_PLACE,coffeeShopId);
+
                            rawServerResponse = kawowyDzienniczekService.getRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                    + UrlEndingsConstants.API_USER_PROMOTIONS, token,args);
-
                            SharedPreferences prefs = activity.getApplicationContext().getSharedPreferences(getString(R.string.app_name),
                                    Context.MODE_PRIVATE);
 
                            if(prefs.getBoolean(GeneralConstants.IS_ACTIVE_LIST_MODIFIED + coffeeShopId + user.getId(),true)) {
-                               kawowyDzienniczekService.getPromotionDataByStatusReplaceExistingList(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_ACTIVE);
+                               List<String> statusesWanted = new ArrayList<>();
+                               statusesWanted.add(GeneralConstants.USER_PROMOTION_PROGRESS_ACTIVE);
+                               statusesWanted.add(GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE);
+
+                               kawowyDzienniczekService.getPromotionDataByStatusReplaceExistingList(adapterItems, rawServerResponse,
+                                       statusesWanted);
                                SharedPreferences.Editor editor = prefs.edit();
                                editor.putString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId + user.getId() ,
                                        gson.toJson(adapterItems));
@@ -196,12 +201,15 @@ public class PromotionListFragment extends ListFragment {
                            }
                            return true;
 
-                       case GeneralConstants.PROMOTION_HISTORY:
+                       case GeneralConstants.USER_PROMOTION_PROGRESS_HISTORY:
                            HashMap<String,String> nargs = new HashMap<>();
                            nargs.put(GeneralConstants.USER_PROMOTIONS_ACTIVE_ARGUMENT_PLACE,coffeeShopId);
+
+                           List<String> statusedWanted = new ArrayList<>();
+                           statusedWanted.add(GeneralConstants.USER_PROMOTION_PROGRESS_HISTORY);
                            rawServerResponse = kawowyDzienniczekService.getRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                    + UrlEndingsConstants.API_USER_PROMOTIONS, token, nargs);
-                           kawowyDzienniczekService.getPromotionDataByStatusReplaceExistingList(adapterItems, rawServerResponse, GeneralConstants.PROMOTION_HISTORY);
+                           kawowyDzienniczekService.getPromotionDataByStatusReplaceExistingList(adapterItems, rawServerResponse, statusedWanted);
                            return true;
                        default:
                            return false;

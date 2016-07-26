@@ -56,7 +56,7 @@ public class PromotionForUserAdapter extends ArrayAdapter<KawowyDzienniczekServi
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if(promCategory.equals(GeneralConstants.PROMOTION_AVAILABLE)) {
+        if(promCategory.equals(GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE)) {
             ViewHolder viewHolder;
 
             if (convertView == null) {

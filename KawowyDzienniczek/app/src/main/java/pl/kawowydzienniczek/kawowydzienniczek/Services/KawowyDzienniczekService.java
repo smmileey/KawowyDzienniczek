@@ -21,26 +21,30 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.LoginErrors;
 import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
 
 public class KawowyDzienniczekService {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
     OkHttpClient client = new OkHttpClient();
 
-    public String postRequest(String url, String params, String auth) throws IOException {
+
+    public void setClient(OkHttpClient client) {
+        this.client = client;
+    }
+
+    public String postRequestWithParameters(String url, String params, String auth) throws IOException {
         RequestBody body = RequestBody.create(JSON, params);
         Request.Builder builder = new Request.Builder().url(url);
 
         if(auth != null)
             builder = builder.addHeader("Authorization", "Token " + auth);
-        Request request = builder
-                .post(body)
-                .build();
+        Request request = builder.post(body).build();
+
         try(Response response = client.newCall(request).execute()){
-            return response.body().string();
+            return response == null? "Response is null." : response.body().string();
         }
     }
 
@@ -53,7 +57,7 @@ public class KawowyDzienniczekService {
                 .get()
                 .build();
         try(Response response = client.newCall(request).execute()){
-            return response.body().string();
+            return response==null? "Response is null." : response.body().string();
         }
     }
 
@@ -71,7 +75,7 @@ public class KawowyDzienniczekService {
                 .get()
                 .build();
         try(Response response = client.newCall(request).execute()){
-            return response.body().string();
+            return response==null? "Response is null." : response.body().string();
         }
     }
 
@@ -93,10 +97,10 @@ public class KawowyDzienniczekService {
         if(response == null)
             return false;
         JSONObject obj = new JSONObject(response);
-        return obj.optString("detail").isEmpty();
+        return !obj.has("detail");
     }
 
-    public String makeJsonUsername(String email, String password) throws JSONException {
+    public String makeJsonUsernameCredentials(String email, String password) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("email",email);
         object.put("password", password);
@@ -105,19 +109,19 @@ public class KawowyDzienniczekService {
 
     public ProductData getProductData(String response) throws JSONException {
         JSONObject json = new JSONObject(response);
-        return  new ProductData(json.getString("id"),
-                json.getString("name"),
-                json.getString("description"),
-                json.getString("price"),
-                json.getString("img"));
+        return  new ProductData(json.optString("id"),
+                json.optString("name"),
+                json.optString("description"),
+                json.optString("price"),
+                json.optString("img"));
     }
 
-    boolean isDateWithinRange(Date start, Date end, Date testDate) {
+    public boolean isDateWithinRange(Date start, Date end, Date testDate) {
         if(testDate == null)
             return false;
 
         if(start == null){
-            return end == null || !(testDate.after(end)); //always-on
+            return end == null || !(testDate.after(end)); // end==null -> prom is always-on
         }
 
         if(end == null){
@@ -126,78 +130,59 @@ public class KawowyDzienniczekService {
         return !(testDate.before(start) || testDate.after(end));
     }
 
-    public void getPromotionDataByStatusReplaceExistingList(List<PromotionData> existing, String response, String status) throws JSONException, ParseException {
-        JSONObject json = new JSONObject(response);
-        JSONArray promotions = json.getJSONArray("results");
-        for(int i=0;i<promotions.length();i++){
-            JSONObject temp = promotions.getJSONObject(i);
+    public void getPromotionDataByStatusReplaceExistingList(List<PromotionData> existing, String response,
+                                                            List<String> statuses) throws JSONException, ParseException {
+        if(existing != null) {
+            JSONObject json = new JSONObject(response);
+            JSONArray promotions = json.getJSONArray("results");
+            for (int i = 0; i < promotions.length(); i++) {
+                JSONObject temp = promotions.getJSONObject(i);
 
-            if(temp.getString("status").equals(status)) {
-                JSONObject singleProm = temp.getJSONObject("promotion");
-                String startDate = singleProm.getString("start_date"),
-                        endDate= singleProm.getString("end_date"),
-                        format = "yyyy-MM-dd";
-                SimpleDateFormat dFormat = new SimpleDateFormat(format);
-                Date sDate = startDate.equals("null") ? null: dFormat.parse(startDate);
-                Date eDate = endDate.equals("null")? null: dFormat.parse(endDate);
-                Date todayDate = Calendar.getInstance().getTime();
+                if (statuses.contains(temp.getString("progress"))) {  //na przykład chcemy promocje z progressem: AC lub AV
+                    JSONObject singleProm = temp.getJSONObject("promotion");
+                    String startDate = singleProm.getString("start_date"),
+                            endDate = singleProm.getString("end_date"),
+                            format = "yyyy-MM-dd";
+                    SimpleDateFormat dFormat = new SimpleDateFormat(format);
+                    Date sDate = startDate.equals("null") ? null : dFormat.parse(startDate);
+                    Date eDate = endDate.equals("null") ? null : dFormat.parse(endDate);
+                    Date todayDate = Calendar.getInstance().getTime();
 
-                if(isDateWithinRange(sDate, eDate, todayDate)) {
-                    existing.add(getSinglePromotionData(singleProm,sDate,eDate));
+                    if (isDateWithinRange(sDate, eDate, todayDate)) {
+                        existing.add(getSinglePromotionData(singleProm, sDate, eDate));
+                    }
                 }
             }
         }
     }
 
     public void getAvailablePromotionDataReplaceExistingList(List<PromotionData> existing, String response) throws JSONException, ParseException {
-        existing.clear();
+        if(existing != null) {
 
-        JSONObject base = new JSONObject(response);
-        JSONObject promotionTag = base.getJSONObject("promotion");
-        JSONArray promotions = promotionTag.getJSONArray("promotions");
-        JSONObject tempJson;
+            existing.clear();
+            JSONObject base = new JSONObject(response);
+            JSONObject promotionTag = base.getJSONObject("promotion");
+            JSONArray promotions = promotionTag.getJSONArray("promotions");
+            JSONObject tempJson;
 
-        String startDate,endDate, format = "yyyy-MM-dd";
-        SimpleDateFormat dFormat = new SimpleDateFormat(format);
+            String startDate, endDate, format = "yyyy-MM-dd";
+            SimpleDateFormat dFormat = new SimpleDateFormat(format);
 
-        for(int i=0;i<promotions.length();i++){
-            tempJson = promotions.getJSONObject(i);
-            startDate = tempJson.getString("start_date");
-            endDate = tempJson.getString("end_date");
-            Date sDate = startDate.equals("null") ? null: dFormat.parse(startDate);
-            Date eDate = endDate.equals("null")? null: dFormat.parse(endDate);
-            Date todayDate = Calendar.getInstance().getTime();
+            for (int i = 0; i < promotions.length(); i++) {
+                tempJson = promotions.getJSONObject(i);
+                if (tempJson.optString("status").equals(GeneralConstants.PROMOTION_STATUS_AVAILABLE)) {
+                    startDate = tempJson.getString("start_date");
+                    endDate = tempJson.getString("end_date");
+                    Date sDate = startDate.equals("null") ? null : dFormat.parse(startDate);
+                    Date eDate = endDate.equals("null") ? null : dFormat.parse(endDate);
+                    Date todayDate = Calendar.getInstance().getTime();
 
-            if(isDateWithinRange(sDate, eDate, todayDate)) {
-                existing.add(getSinglePromotionData(tempJson,sDate,eDate));
+                    if (isDateWithinRange(sDate, eDate, todayDate)) {
+                        existing.add(getSinglePromotionData(tempJson, sDate, eDate));
+                    }
+                }
             }
         }
-    }
-
-    //deprecated HEHE
-    public List<PromotionData> getAvailablePromotionsDataReturnNewList(String response, int coffeeShopId) throws JSONException, ParseException {
-        List<PromotionData> promData = new ArrayList<>();
-        JSONObject base = new JSONObject(response);
-        JSONArray results = base.getJSONArray("results");
-        JSONObject specfificOffer = results.getJSONObject(coffeeShopId - 1);
-        JSONArray promotions = specfificOffer.getJSONArray("promotions");
-        JSONObject tempJson;
-        String startDate,endDate, format = "yyyy-MM-dd";
-        SimpleDateFormat dFormat = new SimpleDateFormat(format);
-
-        for(int i=0;i<promotions.length();i++) {
-            tempJson = promotions.getJSONObject(i);
-            startDate = tempJson.getString("start_date");
-            endDate = tempJson.getString("end_date");
-            Date sDate = startDate.equals("null") ? null : dFormat.parse(startDate);
-            Date eDate = endDate.equals("null") ? null : dFormat.parse(endDate);
-            Date todayDate = Calendar.getInstance().getTime();
-
-            if (isDateWithinRange(sDate, eDate, todayDate)) {
-                promData.add(getSinglePromotionData(tempJson,sDate,eDate));
-            }
-        }
-        return promData;
     }
 
     public PromotionData getSinglePromotionData(String response) throws JSONException, ParseException {
@@ -219,7 +204,7 @@ public class KawowyDzienniczekService {
 
     private PromotionData getSinglePromotionData(JSONObject json, Date startDate, Date endDate) throws JSONException, ParseException {
         return new PromotionData(
-                json.getString("id"),
+                String.valueOf(json.getInt("id")),
                 json.getString("name"),
                 json.getString("description"),
                 json.getString("code"),
@@ -256,22 +241,58 @@ public class KawowyDzienniczekService {
                 json.getString("photo"));
     }
 
-    public CoffeePreviewData getCoffeePreviewData(String response) throws JSONException {
+    public CoffeePreviewData getCoffeePreviewData(String response) throws JSONException, ParseException {
         JSONObject json = new JSONObject(response);
+        JSONObject tempJson = json.getJSONObject("localization");
+        List<OfferData> offerDataList = new ArrayList<>();
+        List<PromotionData> promotionDataList = new ArrayList<>();
+
+        LocalizationData localizationData = new LocalizationData(
+                tempJson.getString("url"),
+                tempJson.getString("id"),
+                tempJson.getString("latitude"),
+                tempJson.getString("longitude"),
+                tempJson.getString("city"),
+                tempJson.getString("road"),
+                tempJson.getString("road_number")
+        );
+
+        OfferData offerData = null;
+        tempJson = json.getJSONObject("offer");
+        JSONArray offersArray = tempJson.getJSONArray("products");
+        for(int i=0;i<offersArray.length();i++){
+            JSONObject tempObj = offersArray.getJSONObject(i);
+            offerData = new OfferData(
+                   tempObj.getString("id"),
+                    tempObj.getString("name"),
+                    tempObj.getString("description"),
+                    tempObj.getString("price"),
+                    tempObj.getString("img"));
+            offerDataList.add(offerData);
+        }
+
+        PromotionData promData = null;
+        tempJson = json.getJSONObject("promotion");
+        JSONArray promArray = tempJson.getJSONArray("promotions");
+        for(int i=0;i<promArray.length();i++){
+            JSONObject tempObj = promArray.getJSONObject(i);
+            promData = getSinglePromotionData(tempObj.toString());
+            promotionDataList.add(promData);
+        }
+
         return  new CoffeePreviewData(
                 json.getString("name"),
-                json.getString("localization"),
+                localizationData,
                 json.getString("logo_img"),
                 json.getString("screen_img"),
                 json.getString("description"),
                 json.getString("type"),
-                json.getString("offer"),
-                json.getString("promotion"),
+                offerDataList,
+                promotionDataList,
                 json.getString("id"));
     }
 
-
-    public class PromotionData{
+    public static class PromotionData{
 
         private String id;
         private String name;
@@ -292,7 +313,7 @@ public class KawowyDzienniczekService {
             this.image = image;
             this.status = status;
             this.left_number = left_number;
-            this. start_date = start_date;
+            this.start_date = start_date;
             this.end_date = end_date;
         }
 
@@ -391,7 +412,7 @@ public class KawowyDzienniczekService {
     }
 
 
-    public class OfferData{
+    public static class OfferData{
 
         private String id;
         private String name;
@@ -431,9 +452,34 @@ public class KawowyDzienniczekService {
         public String toString() {
             return name;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            OfferData offerData = (OfferData) o;
+
+            if (!id.equals(offerData.id)) return false;
+            if (!name.equals(offerData.name)) return false;
+            if (!description.equals(offerData.description)) return false;
+            if (!price.equals(offerData.price)) return false;
+            return image.equals(offerData.image);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = id.hashCode();
+            result = 31 * result + name.hashCode();
+            result = 31 * result + description.hashCode();
+            result = 31 * result + price.hashCode();
+            result = 31 * result + image.hashCode();
+            return result;
+        }
     }
 
-    public class UserData{
+    public static class UserData{
 
         private String url;
         private int id;
@@ -462,6 +508,29 @@ public class KawowyDzienniczekService {
         public String getPhoto() {
             return photo;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            UserData userData = (UserData) o;
+
+            if (id != userData.id) return false;
+            if (!url.equals(userData.url)) return false;
+            if (!user.equals(userData.user)) return false;
+            return photo.equals(userData.photo);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = url.hashCode();
+            result = 31 * result + id;
+            result = 31 * result + user.hashCode();
+            result = 31 * result + photo.hashCode();
+            return result;
+        }
     }
 
     public class LoginResponseData {
@@ -489,20 +558,20 @@ public class KawowyDzienniczekService {
         }
     }
 
-    public class CoffeePreviewData {
+    public static class CoffeePreviewData {
 
         private String name;
-        private String localization;
+        private LocalizationData localization;
         private String image_logo;
         private String image_screen;
         private String desc;
         private String type;
-        private String offer;
-        private String promotion;
+        private List<OfferData> offer;
+        private List<PromotionData> promotion;
         private String id;
 
-        public CoffeePreviewData(String name, String localization, String image_logo, String image_screen, String desc,
-                                 String type, String offer, String promotion, String id){
+        public CoffeePreviewData(String name, LocalizationData localization, String image_logo, String image_screen, String desc,
+                                 String type, List<OfferData> offer, List<PromotionData> promotion, String id){
             this.name = name;
             this.localization = localization;
             this.image_logo= image_logo;
@@ -518,7 +587,7 @@ public class KawowyDzienniczekService {
             return name;
         }
 
-        public String getLocalization() {
+        public LocalizationData getLocalization() {
             return localization;
         }
 
@@ -538,13 +607,93 @@ public class KawowyDzienniczekService {
             return type;
         }
 
-        public String getOffer() {
+        public List<OfferData> getOffer() {
             return offer;
         }
 
-        public String getPromotion() {
+        public List<PromotionData> getPromotion() {
             return promotion;
         }
     }
 
+    public static class LocalizationData {
+
+        private String url;
+        private String id;
+        private String latitude;
+        private String longitude;
+        private String city;
+        private String road;
+        private String road_number;
+
+        public String getUrl() {
+            return url;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getLatitude() {
+            return latitude;
+        }
+
+        public String getLongitude() {
+            return longitude;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public String getRoad() {
+            return road;
+        }
+
+        public String getRoad_number() {
+            return road_number;
+        }
+
+        public LocalizationData(String url, String id, String latitude, String longitude, String city,
+                                String road, String road_number){
+            this.url = url;
+            this.id = id;
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.city= city;
+            this.road = road;
+            this.road_number = road_number;
+
+
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            LocalizationData that = (LocalizationData) o;
+
+            if (!url.equals(that.url)) return false;
+            if (!id.equals(that.id)) return false;
+            if (!latitude.equals(that.latitude)) return false;
+            if (!longitude.equals(that.longitude)) return false;
+            if (!city.equals(that.city)) return false;
+            if (!road.equals(that.road)) return false;
+            return road_number.equals(that.road_number);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = url.hashCode();
+            result = 31 * result + id.hashCode();
+            result = 31 * result + latitude.hashCode();
+            result = 31 * result + longitude.hashCode();
+            result = 31 * result + city.hashCode();
+            result = 31 * result + road.hashCode();
+            result = 31 * result + road_number.hashCode();
+            return result;
+        }
+    }
 }

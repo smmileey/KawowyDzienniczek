@@ -9,9 +9,12 @@ public  class GeneralConstants {
     public static final String LAST_EMAIL = "last_email";
     public static final String USER_PROFILE = "user_profile";
 
-    public static final String PROMOTION_AVAILABLE = "prom_av";
-    public static final String PROMOTION_ACTIVE = "in_progress";
-    public static final String PROMOTION_HISTORY = "used";
+    public static final String USER_PROMOTION_PROGRESS_AVAILABLE = "AV";
+    public static final String USER_PROMOTION_PROGRESS_ACTIVE = "AC";
+    public static final String USER_PROMOTION_PROGRESS_HISTORY = "US";
+    public static final String PROMOTION_STATUS_AVAILABLE = "AV";
+    public static final String PROMOTION_STATUS_NOT_AVAILABLE = "NAV";
+
     public static final String USER_PROMOTIONS_ACTIVE = "user_in_progress";
     public static final String IS_ACTIVE_LIST_MODIFIED = "active_list_modified";
 

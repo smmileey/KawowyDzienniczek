@@ -317,7 +317,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected Boolean doInBackground(Void... params) {
 
             try {
-                String response = kawowyDzienniczekService.postRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_TOKEN_AUTH, kawowyDzienniczekService.makeJsonUsername(mEmail,mPassword), null);
+                String response = kawowyDzienniczekService.postRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
+                                + UrlEndingsConstants.API_TOKEN_AUTH,
+                        kawowyDzienniczekService.makeJsonUsernameCredentials(mEmail, mPassword), null);
                 loginResponseData = kawowyDzienniczekService.getToken(response);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();

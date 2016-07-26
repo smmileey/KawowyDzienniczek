@@ -57,9 +57,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="pl.kawowydzienniczek.kawowydzienniczek.Activities.PromotionListActivity" />
         </activity>
-        <activity
-            android:name=".Activities.PreviewCoffeeShopsFragment" >
-        </activity>
     </application>
 
 </manifest>

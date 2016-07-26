@@ -43,17 +43,17 @@ public class PromotionListActivity extends AppCompatActivity
         if(bundle != null) {
             currentPromotionTab = bundle.getString(FragmentsArgumentsConstants.PROMOTION_CATEGORY);
             if (currentPromotionTab == null) {
-                currentPromotionTab = GeneralConstants.PROMOTION_AVAILABLE;
+                currentPromotionTab = GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE;
                 currentTabButton = (Button) findViewById(R.id.btn_promotions_available);
             } else {
                 switch (currentPromotionTab) {
-                    case GeneralConstants.PROMOTION_ACTIVE:
+                    case GeneralConstants.USER_PROMOTION_PROGRESS_ACTIVE:
                         currentTabButton = (Button) findViewById(R.id.btn_promotions_active);
                         break;
-                    case GeneralConstants.PROMOTION_HISTORY:
+                    case GeneralConstants.USER_PROMOTION_PROGRESS_HISTORY:
                         currentTabButton = (Button) findViewById(R.id.btn_promotions_history);
                         break;
-                    case GeneralConstants.PROMOTION_AVAILABLE:
+                    case GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE:
                         currentTabButton = (Button)findViewById(R.id.btn_promotions_available);
                 }
             }
@@ -110,17 +110,17 @@ public class PromotionListActivity extends AppCompatActivity
             case R.id.btn_promotions_available:
                 currentTabButton.setPressed(false);
                 currentTabButton = (Button)findViewById(R.id.btn_promotions_available);
-                ReplaceFragmentWithProductNames(GeneralConstants.PROMOTION_AVAILABLE);
+                ReplaceFragmentWithProductNames(GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE);
                 break;
             case R.id.btn_promotions_active:
                 currentTabButton.setPressed(false);
                 currentTabButton = (Button)findViewById(R.id.btn_promotions_active);
-                ReplaceFragmentWithProductNames(GeneralConstants.PROMOTION_ACTIVE);
+                ReplaceFragmentWithProductNames(GeneralConstants.USER_PROMOTION_PROGRESS_ACTIVE);
                 break;
             case R.id.btn_promotions_history:
                 currentTabButton.setPressed(false);
                 currentTabButton = (Button)findViewById(R.id.btn_promotions_history);
-                ReplaceFragmentWithProductNames(GeneralConstants.PROMOTION_HISTORY);
+                ReplaceFragmentWithProductNames(GeneralConstants.USER_PROMOTION_PROGRESS_HISTORY);
                 break;
         }
     }

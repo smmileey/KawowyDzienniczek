@@ -46,4 +46,27 @@ public class User {
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        User user = (User) o;
+
+        if (id != user.id) return false;
+        if (!url.equals(user.url)) return false;
+        if (!username.equals(user.username)) return false;
+        return email.equals(user.email);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = url.hashCode();
+        result = 31 * result + id;
+        result = 31 * result + username.hashCode();
+        result = 31 * result + email.hashCode();
+        return result;
+    }
 }
