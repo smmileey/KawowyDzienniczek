@@ -18,13 +18,13 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.text.ParseException;
 
-import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralService;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.CoffeePreviewData;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
 public class CoffeeShopActivity extends AppCompatActivity {
 
@@ -34,8 +34,7 @@ public class CoffeeShopActivity extends AppCompatActivity {
     private String rawServerResponse;
 
     private KawowyDzienniczekService service = new KawowyDzienniczekService();
-    private KawowyDzienniczekService.CoffeePreviewData coffeePreviewData;
-    private GeneralService genService = new GeneralService();
+    private CoffeePreviewData coffeePreviewData;
     private GeneralUtilMethods genUtils;
 
     private View mProgressBar;
@@ -106,7 +105,7 @@ public class CoffeeShopActivity extends AppCompatActivity {
                         TextView titleView = (TextView) mCoffeeView.findViewById(R.id.single_coffee_title);
                         titleView.setText(coffeePreviewData.getName());
                         TextView localView = (TextView) mCoffeeView.findViewById(R.id.single_coffee_localization);
-                        localView.setText(genService.getFormattedLocalization(coffeePreviewData.getLocalization()));
+                        localView.setText(service.getFormattedLocalization(coffeePreviewData.getLocalization()));
                     }else {
                         genUtils.ResetToken();
                         Intent backToLogin = new Intent(getApplicationContext(),LoginActivity.class);

@@ -25,6 +25,7 @@ import java.text.ParseException;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.PromotionData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
@@ -36,7 +37,7 @@ public class PromotionDetailFragment extends Fragment {
     private GeneralUtilMethods generalUtilMethods;
 
     private SinglePromotionDataTask mSinglePromotionDataTask = null;
-    private KawowyDzienniczekService.PromotionData promotionData;
+    private PromotionData promotionData;
     private String promotionId;
     private String token;
     private String rawServerResponse;

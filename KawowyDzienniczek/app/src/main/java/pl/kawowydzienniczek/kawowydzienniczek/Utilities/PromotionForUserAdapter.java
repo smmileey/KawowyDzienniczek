@@ -18,20 +18,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.PromotionData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
-public class PromotionForUserAdapter extends ArrayAdapter<KawowyDzienniczekService.PromotionData> {
+public class PromotionForUserAdapter extends ArrayAdapter<PromotionData> {
 
     private final int ACTIVE_FOR_USER;
     private final int NOT_ACTIVE_FOR_USER;
 
     private final Context context;
     private final String promCategory;
-    private final List<KawowyDzienniczekService.PromotionData> itemsArrayList;
-    private final List<KawowyDzienniczekService.PromotionData> promData;
+    private final List<PromotionData> itemsArrayList;
+    private final List<PromotionData> promData;
 
-    public PromotionForUserAdapter(Context context, List<KawowyDzienniczekService.PromotionData> itemsArrayList, String userId, String coffeeShopId,
+    public PromotionForUserAdapter(Context context, List<PromotionData> itemsArrayList, String userId, String coffeeShopId,
                                    String promotionCategory){
         super(context, R.layout.promotion_list_item_with_state_status, itemsArrayList);
         this.context = context;
@@ -43,7 +43,7 @@ public class PromotionForUserAdapter extends ArrayAdapter<KawowyDzienniczekServi
 
         SharedPreferences prefs = context.getSharedPreferences(context.getString(R.string.app_name),Context.MODE_PRIVATE);
         Gson gson = new Gson();
-        Type promListType = new TypeToken<ArrayList<KawowyDzienniczekService.PromotionData>>(){}.getType();
+        Type promListType = new TypeToken<ArrayList<PromotionData>>(){}.getType();
         promData = gson.fromJson(prefs.getString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId +
                 userId, null), promListType);
     }
@@ -51,7 +51,7 @@ public class PromotionForUserAdapter extends ArrayAdapter<KawowyDzienniczekServi
     static class ViewHolder{
         TextView mainText;
         ImageView activeForUserIndicatorImage;
-        List<KawowyDzienniczekService.PromotionData> promData;
+        List<PromotionData> promData;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class PromotionForUserAdapter extends ArrayAdapter<KawowyDzienniczekServi
         }
     }
 
-    private Boolean isPromotionActiveForUser(int positionOnList, List<KawowyDzienniczekService.PromotionData> userPromData){
+    private Boolean isPromotionActiveForUser(int positionOnList, List<PromotionData> userPromData){
          return userPromData.contains(itemsArrayList.get(positionOnList));
     }
 }

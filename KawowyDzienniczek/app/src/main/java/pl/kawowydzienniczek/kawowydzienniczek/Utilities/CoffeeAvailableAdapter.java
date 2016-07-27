@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import pl.kawowydzienniczek.kawowydzienniczek.Globals.CoffeeAvailableData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.CoffeeAvailableData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 
 public class CoffeeAvailableAdapter extends ArrayAdapter<CoffeeAvailableData>{

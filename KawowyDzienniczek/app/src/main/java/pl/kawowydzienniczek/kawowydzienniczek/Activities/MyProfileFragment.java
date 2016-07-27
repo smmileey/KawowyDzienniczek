@@ -14,8 +14,8 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.UserData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
 public class MyProfileFragment extends Fragment {
 
@@ -39,8 +39,8 @@ public class MyProfileFragment extends Fragment {
 
         Gson gson = new Gson();
         SharedPreferences prefs = activity.getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE);
-        KawowyDzienniczekService.UserData userData = gson.
-                fromJson(prefs.getString(GeneralConstants.USER_PROFILE, ""), KawowyDzienniczekService.UserData.class);
+        UserData userData = gson.
+                fromJson(prefs.getString(GeneralConstants.USER_PROFILE, ""), UserData.class);
         if(prefs.getBoolean(GeneralConstants.AUTHENTICATED,false)) {
             tvUsername.setText(userData.getUser().getUsername());
         }

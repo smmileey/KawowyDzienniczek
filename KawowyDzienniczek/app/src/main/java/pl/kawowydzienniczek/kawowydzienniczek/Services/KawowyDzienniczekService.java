@@ -23,7 +23,15 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.LoginErrors;
-import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.CoffeeAvailableData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.CoffeePreviewData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.LocalizationData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.LoginData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.OfferData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.ProductData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.PromotionData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.User;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.UserData;
 
 public class KawowyDzienniczekService {
 
@@ -35,6 +43,7 @@ public class KawowyDzienniczekService {
         this.client = client;
     }
 
+    //post/get
     public String postRequestWithParameters(String url, String params, String auth) throws IOException {
         RequestBody body = RequestBody.create(JSON, params);
         Request.Builder builder = new Request.Builder().url(url);
@@ -79,20 +88,7 @@ public class KawowyDzienniczekService {
         }
     }
 
-    public LoginResponseData getToken(String response) throws JSONException {
-        JSONObject resJson = new JSONObject(response);
-        HashMap<LoginErrors,String> hMap = new HashMap<>();
-        try {
-            String token = resJson.getString("token");
-            return new LoginResponseData(true, token, hMap);
-        }
-        catch (JSONException ex){
-            String error = resJson.optString("non_field_errors");
-            hMap.put(LoginErrors.GENERAL,error);
-            return new LoginResponseData(false, "none",hMap);
-        }
-    }
-
+    //functional methods
     public Boolean isRequestAuthorized(String response) throws JSONException {
         if(response == null)
             return false;
@@ -107,15 +103,6 @@ public class KawowyDzienniczekService {
         return object.toString();
     }
 
-    public ProductData getProductData(String response) throws JSONException {
-        JSONObject json = new JSONObject(response);
-        return  new ProductData(json.optString("id"),
-                json.optString("name"),
-                json.optString("description"),
-                json.optString("price"),
-                json.optString("img"));
-    }
-
     public boolean isDateWithinRange(Date start, Date end, Date testDate) {
         if(testDate == null)
             return false;
@@ -128,6 +115,57 @@ public class KawowyDzienniczekService {
             return !(testDate.before(start));
         }
         return !(testDate.before(start) || testDate.after(end));
+    }
+
+    public String getFormattedLocalization(LocalizationData localizationData){
+        return localizationData.getCity()+", "+localizationData.getRoad()+" "+
+                localizationData.getRoad_number();
+    }
+
+    public <T> Boolean copyArrayListByValue(List<T> source, List<T> destination){
+        if(destination == null)
+            return false;
+
+        destination.clear();
+        for (T item:source) {
+            destination.add(item);
+        }
+        return true;
+    }
+
+    //data retrieve methods
+    public LoginData getToken(String response) throws JSONException {
+        JSONObject resJson = new JSONObject(response);
+        HashMap<LoginErrors,String> hMap = new HashMap<>();
+        try {
+            String token = resJson.getString("token");
+            return new LoginData(true, token, hMap);
+        }
+        catch (JSONException ex){
+            String error = resJson.optString("non_field_errors");
+            hMap.put(LoginErrors.GENERAL,error);
+            return new LoginData(false, "none",hMap);
+        }
+    }
+
+    public ArrayList<CoffeeAvailableData> getCofeeItemsList(JSONArray array) throws JSONException {
+        ArrayList<CoffeeAvailableData> result = new ArrayList<>();
+
+        for(int i=0; i<array.length(); i++) {
+            JSONObject jsonObj = array.getJSONObject(i);
+            result.add(new CoffeeAvailableData(jsonObj.getString("name"), jsonObj.getString("description"),
+                    jsonObj.getString("id")));
+        }
+        return result;
+    }
+
+    public ProductData getProductData(String response) throws JSONException {
+        JSONObject json = new JSONObject(response);
+        return  new ProductData(json.optString("id"),
+                json.optString("name"),
+                json.optString("description"),
+                json.optString("price"),
+                json.optString("img"));
     }
 
     public void getPromotionDataByStatusReplaceExistingList(List<PromotionData> existing, String response,
@@ -257,7 +295,7 @@ public class KawowyDzienniczekService {
                 tempJson.getString("road_number")
         );
 
-        OfferData offerData = null;
+        OfferData offerData;
         tempJson = json.getJSONObject("offer");
         JSONArray offersArray = tempJson.getJSONArray("products");
         for(int i=0;i<offersArray.length();i++){
@@ -271,7 +309,7 @@ public class KawowyDzienniczekService {
             offerDataList.add(offerData);
         }
 
-        PromotionData promData = null;
+        PromotionData promData;
         tempJson = json.getJSONObject("promotion");
         JSONArray promArray = tempJson.getJSONArray("promotions");
         for(int i=0;i<promArray.length();i++){
@@ -290,410 +328,5 @@ public class KawowyDzienniczekService {
                 offerDataList,
                 promotionDataList,
                 json.getString("id"));
-    }
-
-    public static class PromotionData{
-
-        private String id;
-        private String name;
-        private String description;
-        private String code;
-        private String image;
-        private String status;
-        private String left_number;
-        private Date start_date;
-        private Date end_date;
-
-        public PromotionData(String id, String name, String description, String code, String image, String status,
-                             String left_number, Date start_date, Date end_date){
-            this.id = id;
-            this.name = name;
-            this.description = description;
-            this.code = code;
-            this.image = image;
-            this.status = status;
-            this.left_number = left_number;
-            this.start_date = start_date;
-            this.end_date = end_date;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public String getImage() {
-            return image;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public String getLeft_number() {
-            return left_number;
-        }
-
-        public Date getStart_date() {
-            return start_date;
-        }
-
-        public Date getEnd_date() {
-            return end_date;
-        }
-
-        @Override
-        public String toString() {
-            return description;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            PromotionData that = (PromotionData) o;
-            return id.equals(that.id);
-        }
-
-        @Override
-        public int hashCode() {
-            return id.hashCode();
-        }
-    }
-
-    //different kind of response data
-    public  class ProductData{
-
-        private String id;
-        private String name;
-        private String description;
-        private String price;
-        private String img;
-
-        public  ProductData(String id, String name, String description, String price, String img){
-            this.id = id;
-            this. name = name;
-            this.description=description;
-            this.price = price;
-            this.img=img;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getPrice() {
-            return price;
-        }
-
-        public String getImg() {
-            return img;
-        }
-    }
-
-
-    public static class OfferData{
-
-        private String id;
-        private String name;
-        private String description;
-        private String price;
-        private String image;
-
-        public OfferData(String id, String name, String description, String price, String image){
-            this.id = id;
-            this.name = name;
-            this.description = description;
-            this.price = price;
-            this.image = image;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getPrice() {
-            return price;
-        }
-
-        public String getImage() {
-            return image;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            OfferData offerData = (OfferData) o;
-
-            if (!id.equals(offerData.id)) return false;
-            if (!name.equals(offerData.name)) return false;
-            if (!description.equals(offerData.description)) return false;
-            if (!price.equals(offerData.price)) return false;
-            return image.equals(offerData.image);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = id.hashCode();
-            result = 31 * result + name.hashCode();
-            result = 31 * result + description.hashCode();
-            result = 31 * result + price.hashCode();
-            result = 31 * result + image.hashCode();
-            return result;
-        }
-    }
-
-    public static class UserData{
-
-        private String url;
-        private int id;
-        private User user;
-        private String photo;
-
-        public UserData(String url, int id, User user, String photo){
-            this.url = url;
-            this.id = id;
-            this.user = user;
-            this.photo = photo;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public int getId() {
-            return id;
-        }
-
-        public User getUser() {
-            return user;
-        }
-
-        public String getPhoto() {
-            return photo;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            UserData userData = (UserData) o;
-
-            if (id != userData.id) return false;
-            if (!url.equals(userData.url)) return false;
-            if (!user.equals(userData.user)) return false;
-            return photo.equals(userData.photo);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = url.hashCode();
-            result = 31 * result + id;
-            result = 31 * result + user.hashCode();
-            result = 31 * result + photo.hashCode();
-            return result;
-        }
-    }
-
-    public class LoginResponseData {
-
-        private String token;
-        private boolean isValid;
-        private HashMap<LoginErrors, String> errors;
-
-        public LoginResponseData(boolean valid, String tkn, HashMap<LoginErrors, String> err){
-            token = tkn;
-            errors = err;
-            isValid = valid;
-        }
-
-        public boolean isValid() {
-            return isValid;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        public HashMap<LoginErrors,String> getErrors() {
-            return errors;
-        }
-    }
-
-    public static class CoffeePreviewData {
-
-        private String name;
-        private LocalizationData localization;
-        private String image_logo;
-        private String image_screen;
-        private String desc;
-        private String type;
-        private List<OfferData> offer;
-        private List<PromotionData> promotion;
-        private String id;
-
-        public CoffeePreviewData(String name, LocalizationData localization, String image_logo, String image_screen, String desc,
-                                 String type, List<OfferData> offer, List<PromotionData> promotion, String id){
-            this.name = name;
-            this.localization = localization;
-            this.image_logo= image_logo;
-            this.image_screen = image_screen;
-            this.desc = desc;
-            this.type = type;
-            this.offer = offer;
-            this.promotion = promotion;
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public LocalizationData getLocalization() {
-            return localization;
-        }
-
-        public String getImage_logo() {
-            return image_logo;
-        }
-
-        public String getImage_screen() {
-            return image_screen;
-        }
-
-        public String getDesc() {
-            return desc;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public List<OfferData> getOffer() {
-            return offer;
-        }
-
-        public List<PromotionData> getPromotion() {
-            return promotion;
-        }
-    }
-
-    public static class LocalizationData {
-
-        private String url;
-        private String id;
-        private String latitude;
-        private String longitude;
-        private String city;
-        private String road;
-        private String road_number;
-
-        public String getUrl() {
-            return url;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getLatitude() {
-            return latitude;
-        }
-
-        public String getLongitude() {
-            return longitude;
-        }
-
-        public String getCity() {
-            return city;
-        }
-
-        public String getRoad() {
-            return road;
-        }
-
-        public String getRoad_number() {
-            return road_number;
-        }
-
-        public LocalizationData(String url, String id, String latitude, String longitude, String city,
-                                String road, String road_number){
-            this.url = url;
-            this.id = id;
-            this.latitude = latitude;
-            this.longitude = longitude;
-            this.city= city;
-            this.road = road;
-            this.road_number = road_number;
-
-
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            LocalizationData that = (LocalizationData) o;
-
-            if (!url.equals(that.url)) return false;
-            if (!id.equals(that.id)) return false;
-            if (!latitude.equals(that.latitude)) return false;
-            if (!longitude.equals(that.longitude)) return false;
-            if (!city.equals(that.city)) return false;
-            if (!road.equals(that.road)) return false;
-            return road_number.equals(that.road_number);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = url.hashCode();
-            result = 31 * result + id.hashCode();
-            result = 31 * result + latitude.hashCode();
-            result = 31 * result + longitude.hashCode();
-            result = 31 * result + city.hashCode();
-            result = 31 * result + road.hashCode();
-            result = 31 * result + road_number.hashCode();
-            return result;
-        }
     }
 }

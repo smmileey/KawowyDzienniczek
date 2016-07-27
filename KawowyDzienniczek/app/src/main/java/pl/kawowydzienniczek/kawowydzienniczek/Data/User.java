@@ -1,4 +1,4 @@
-package pl.kawowydzienniczek.kawowydzienniczek.Globals;
+package pl.kawowydzienniczek.kawowydzienniczek.Data;
 
 
 public class User {

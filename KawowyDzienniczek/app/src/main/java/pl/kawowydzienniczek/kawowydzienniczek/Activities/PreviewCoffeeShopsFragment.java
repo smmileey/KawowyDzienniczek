@@ -22,12 +22,11 @@ import java.util.ArrayList;
 
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
-import pl.kawowydzienniczek.kawowydzienniczek.Globals.CoffeeAvailableData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.CoffeeAvailableData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.CoffeeAvailableAdapter;
-import pl.kawowydzienniczek.kawowydzienniczek.Utilities.JsonConverter;
 
 public class PreviewCoffeeShopsFragment extends Fragment {
 
@@ -106,11 +105,10 @@ public class PreviewCoffeeShopsFragment extends Fragment {
             if(success) {
                 try {
                     if (service.isRequestAuthorized(rawResponseData)) {
-                        JsonConverter conv = new JsonConverter();
-                        ArrayList<CoffeeAvailableData> values = conv.getCofeeItemsList(new JSONObject(rawResponseData).getJSONArray("results"));
+                        ArrayList<CoffeeAvailableData> values = service.getCofeeItemsList(new JSONObject(rawResponseData).
+                                getJSONArray("results"));
                         CoffeeAvailableAdapter cAdapater = new CoffeeAvailableAdapter(activity.getApplicationContext(), values);
                         mCofeeListView.setAdapter(cAdapater);
-
                     }else { //invalid data (np. token wygasł, itd.)
                         genUtils.ResetToken();
                         Intent backToLogin = new Intent(activity.getApplicationContext(),LoginActivity.class);

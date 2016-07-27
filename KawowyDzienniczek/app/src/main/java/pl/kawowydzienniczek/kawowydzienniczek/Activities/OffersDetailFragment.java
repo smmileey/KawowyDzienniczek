@@ -24,6 +24,7 @@ import java.io.IOException;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.ProductData;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
@@ -34,7 +35,7 @@ public class OffersDetailFragment extends Fragment {
     private GeneralUtilMethods generalUtilMethods;
 
     private ProductDataTask mProductDataTask = null;
-    private KawowyDzienniczekService.ProductData productData;
+    private ProductData productData;
     private String productId;
     private String token;
     private String rawServerResponse;

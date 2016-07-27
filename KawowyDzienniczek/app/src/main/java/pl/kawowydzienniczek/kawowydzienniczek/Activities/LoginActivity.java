@@ -45,12 +45,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.LoginErrors;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.LoginData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.UserData;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -305,7 +307,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mEmail;
         private final String mPassword;
         private String token;
-        private KawowyDzienniczekService.LoginResponseData loginResponseData;
+        private LoginData loginData;
         private KawowyDzienniczekService kawowyDzienniczekService = new KawowyDzienniczekService();
 
         UserLoginTask(String email, String password) {
@@ -320,17 +322,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 String response = kawowyDzienniczekService.postRequestWithParameters(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME
                                 + UrlEndingsConstants.API_TOKEN_AUTH,
                         kawowyDzienniczekService.makeJsonUsernameCredentials(mEmail, mPassword), null);
-                loginResponseData = kawowyDzienniczekService.getToken(response);
+                loginData = kawowyDzienniczekService.getToken(response);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
                 return false;
             }
 
-            if(loginResponseData.isValid()) {
-                token = loginResponseData.getToken();
+            if(loginData.isValid()) {
+                token = loginData.getToken();
                 try {
                     String response = kawowyDzienniczekService.getRequest(GeneralConstants.KAWOWY_DZIENNICZEK_WITH_SCHEME + UrlEndingsConstants.API_PROFILE_DATA, token);
-                    KawowyDzienniczekService.UserData uData = kawowyDzienniczekService.getUserData(response);
+                    UserData uData = kawowyDzienniczekService.getUserData(response);
                     SharedPreferences.Editor editor = getSharedPreferences(getString(R.string.app_name), Context.MODE_PRIVATE).edit();
                     Gson gson = new Gson();
                     editor.putString(GeneralConstants.USER_PROFILE,gson.toJson(uData));
@@ -359,7 +361,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 Intent intent = new Intent(getApplicationContext(), MainPageActivity.class);
                 startActivity(intent);
             } else {
-                HashMap<LoginErrors,String> errs = loginResponseData.getErrors();
+                HashMap<LoginErrors,String> errs = loginData.getErrors();
                 String msg = "";
                 for (Map.Entry<LoginErrors, String> entry: errs.entrySet()) {
                     msg+= entry.getKey()+": "+entry.getValue()+"\n";

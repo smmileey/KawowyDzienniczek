@@ -27,24 +27,22 @@ import java.util.List;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.FragmentsArgumentsConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
-import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.PromotionData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.User;
 import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralService;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Utilities.PromotionForUserAdapter;
 
 public class PromotionListFragment extends ListFragment {
 
-
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
     private Callbacks mCallbacks = sDummyCallbacks;
     private KawowyDzienniczekService kawowyDzienniczekService = new KawowyDzienniczekService();
-    private GeneralService genUtils = new GeneralService();
 
     private int mActivatedPosition = ListView.INVALID_POSITION;
-    private List<KawowyDzienniczekService.PromotionData> adapterItems;
+    private List<PromotionData> adapterItems;
     private PromotionDataTask mPromotionDataTask = null;
     private Activity activity;
 
@@ -194,10 +192,10 @@ public class PromotionListFragment extends ListFragment {
                                editor.putBoolean(GeneralConstants.IS_ACTIVE_LIST_MODIFIED + coffeeShopId + user.getId(), false);
                                editor.apply();
                            }else {
-                               Type promListType = new TypeToken<ArrayList<KawowyDzienniczekService.PromotionData>>(){}.getType();
-                               List<KawowyDzienniczekService.PromotionData> dataToPass = gson.fromJson(prefs.
+                               Type promListType = new TypeToken<ArrayList<PromotionData>>(){}.getType();
+                               List<PromotionData> dataToPass = gson.fromJson(prefs.
                                        getString(GeneralConstants.USER_PROMOTIONS_ACTIVE + coffeeShopId + user.getId(), null), promListType);
-                               genUtils.copyArrayListByValue(dataToPass,adapterItems);
+                               kawowyDzienniczekService.copyArrayListByValue(dataToPass,adapterItems);
                            }
                            return true;
 
@@ -232,8 +230,8 @@ public class PromotionListFragment extends ListFragment {
                         ((ArrayAdapter)getListAdapter()).notifyDataSetChanged();
                         ((PromotionListActivity)activity).getCurrentTabButton().setPressed(true);
                     }else {
-                        GeneralUtilMethods genUtils = new GeneralUtilMethods(activity.getApplicationContext());
-                        genUtils.ResetToken();
+                        GeneralUtilMethods kawowyDzienniczekService = new GeneralUtilMethods(activity.getApplicationContext());
+                        kawowyDzienniczekService.ResetToken();
                         Intent backToLogin = new Intent(activity.getApplicationContext(),LoginActivity.class);
                         startActivity(backToLogin);
                         activity.finish();

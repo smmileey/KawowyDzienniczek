@@ -17,11 +17,12 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.List;
 
-import pl.kawowydzienniczek.kawowydzienniczek.R;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
-import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.UrlEndingsConstants;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.OfferData;
+import pl.kawowydzienniczek.kawowydzienniczek.R;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.GeneralUtilMethods;
+import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
 public class OffersListFragment extends ListFragment {
 
@@ -33,7 +34,7 @@ public class OffersListFragment extends ListFragment {
     private Activity activity;
 
     private int mActivatedPosition = ListView.INVALID_POSITION;
-    private List<KawowyDzienniczekService.OfferData> adapterItems;
+    private List<OfferData> adapterItems;
     private OfferDataTask mOfferDataTask = null;
 
     private String token;

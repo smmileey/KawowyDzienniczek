@@ -3,6 +3,7 @@ package pl.kawowydzienniczek.kawowydzienniczek;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +29,12 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import pl.kawowydzienniczek.kawowydzienniczek.Constants.GeneralConstants;
-import pl.kawowydzienniczek.kawowydzienniczek.Globals.User;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.CoffeePreviewData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.LocalizationData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.OfferData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.PromotionData;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.User;
+import pl.kawowydzienniczek.kawowydzienniczek.Data.UserData;
 import pl.kawowydzienniczek.kawowydzienniczek.Services.KawowyDzienniczekService;
 
 import static junit.framework.Assert.assertEquals;
@@ -68,6 +74,44 @@ public class KawowyDzienniczekServiceTest {
 
     @Spy
     Request.Builder spyBuilder = spy(Request.Builder.class);
+
+    @Test
+    public void testGetFormattedLocalization() {
+        LocalizationData one = new LocalizationData(
+                "http://kawowydzienniczek.pl/api/localizations/1/",
+                "1","0.0000","10.0000","Kraków","Makowicka","55");
+        LocalizationData two = new LocalizationData(
+                "http://kawowydzienniczek.pl/api/localizations/2/",
+                "2","10.0000","0.0000","Kraków","Rynek","15");
+
+        assertEquals("Kraków, Makowicka 55", kawowyService.getFormattedLocalization(one));
+        assertEquals("Kraków, Rynek 15", kawowyService.getFormattedLocalization(two));
+    }
+
+    @Test
+    public void testCopyArrayListByValue_FailsIfDestinationIsNull() {
+        List<Integer> input = Arrays.asList(1,2,3,4,5);
+        List<Integer> result = null;
+        Assert.assertFalse(kawowyService.copyArrayListByValue(input, result));
+    }
+
+    @Test
+    public void testCopyArrayListByValue_DestinationHasDuplicatedValues() {
+        List<Integer> input = Arrays.asList(1,2,3,4,5);
+        List<Integer> result = new ArrayList<>();
+        Assert.assertTrue(kawowyService.copyArrayListByValue(input, result));
+        Assert.assertEquals(input, result);
+    }
+
+    @Test
+    public void testCopyArrayListByValue_DestinationHasDifferentRefference() {
+        List<Integer> input = Arrays.asList(1,2,3,4,5);
+        List<Integer> result = new ArrayList<>();
+        Assert.assertTrue(kawowyService.copyArrayListByValue(input, result));
+        Assert.assertFalse(input == result);
+    }
+
+
 
     @Test
     public void postRequestWithParameters_AuthProvided() throws Exception {
@@ -342,7 +386,7 @@ public class KawowyDzienniczekServiceTest {
         statusesWanted.add(GeneralConstants.USER_PROMOTION_PROGRESS_ACTIVE);
         statusesWanted.add(GeneralConstants.USER_PROMOTION_PROGRESS_AVAILABLE);
 
-        kawowyService.getPromotionDataByStatusReplaceExistingList(new ArrayList<KawowyDzienniczekService.PromotionData>(),
+        kawowyService.getPromotionDataByStatusReplaceExistingList(new ArrayList<PromotionData>(),
                 response, statusesWanted);
         verify(spyResultsArray, times(2)).getJSONObject(integersCapturer.capture());
         List<Integer> capturedInts = integersCapturer.getAllValues();
@@ -385,8 +429,8 @@ public class KawowyDzienniczekServiceTest {
                 "    }, \n" +
                 "}";
 
-        List<KawowyDzienniczekService.PromotionData> existingData =
-                (List<KawowyDzienniczekService.PromotionData>)spy(List.class);
+        List<PromotionData> existingData =
+                (List<PromotionData>)spy(List.class);
         JSONObject jsonOriginal = new JSONObject(response);
         JSONObject jsonPromotionObject = jsonOriginal.getJSONObject("promotion");
         JSONArray jsonArray = jsonPromotionObject.getJSONArray("promotions");
@@ -401,7 +445,7 @@ public class KawowyDzienniczekServiceTest {
 
         kawowyService.getAvailablePromotionDataReplaceExistingList(existingData, response);
         verify(spyPromotionsJsonArray,times(2)).getJSONObject(anyInt());
-        verify(existingData).add(isA(KawowyDzienniczekService.PromotionData.class));
+        verify(existingData).add(isA(PromotionData.class));
     }
 
     @Test
@@ -418,9 +462,9 @@ public class KawowyDzienniczekServiceTest {
                 "            \"start_date\": \"null\",\n" +
                 "            \"end_date\": \"null\"\n" +
                 "        }";
-        KawowyDzienniczekService.PromotionData result  = kawowyService.getSinglePromotionData(response);
-        KawowyDzienniczekService.PromotionData expected =
-                new KawowyDzienniczekService.PromotionData(
+        PromotionData result  = kawowyService.getSinglePromotionData(response);
+        PromotionData expected =
+                new PromotionData(
                         "1","10%","Zniżka 10%","5ac5","http://kawowydzienniczek.pl/static/img/photo_1.jpg",
                         "AV","200",null,null);
         assertEquals(expected, result);
@@ -451,17 +495,17 @@ public class KawowyDzienniczekServiceTest {
         JSONObject original = new JSONObject(response);
         JSONObject spyJson = Mockito.spy(original);
         JSONArray spyArray = Mockito.spy(original.getJSONArray("products"));
-        KawowyDzienniczekService.OfferData one = new KawowyDzienniczekService.OfferData(
+        OfferData one = new OfferData(
                 "1","Kawa Latte","Z nutą czekolady","7 zł","http://kawowydzienniczek.pl/static/img/photo_1.jpg"
         );
-        KawowyDzienniczekService.OfferData two = new KawowyDzienniczekService.OfferData(
+        OfferData two = new OfferData(
                 "2","Herbata","Z nutą czekolady","4 zł","http://kawowydzienniczek.pl/static/img/photo_1.jpg"
         );
-        List<KawowyDzienniczekService.OfferData> expected = Arrays.asList(one, two);
+        List<OfferData> expected = Arrays.asList(one, two);
         PowerMockito.whenNew(JSONObject.class).withAnyArguments().thenReturn(spyJson);
         doReturn(spyArray).when(spyJson).getJSONArray(eq("products"));
 
-        List<KawowyDzienniczekService.OfferData> result = kawowyService.getOfferData(response);
+        List<OfferData> result = kawowyService.getOfferData(response);
         verify(spyArray, times(2)).getJSONObject(anyInt());
         assertEquals(expected,result);
     }
@@ -479,12 +523,12 @@ public class KawowyDzienniczekServiceTest {
                 "            },\n" +
                 "            \"photo\": \"http://kawowydzienniczek.pl/static/img/users/photos/default_avatar.png\"\n" +
                 "        }";
-        KawowyDzienniczekService.UserData expected = new KawowyDzienniczekService.UserData(
+        UserData expected = new UserData(
                 "http://kawowydzienniczek.pl/api/user_profile/1/",1,
                 new User("http://kawowydzienniczek.pl/api/user/1/",1,"admin","admin@gmail.com"),
                 "http://kawowydzienniczek.pl/static/img/users/photos/default_avatar.png");
 
-        KawowyDzienniczekService.UserData actual = kawowyService.getUserData(response);
+        UserData actual = kawowyService.getUserData(response);
         assertEquals(expected,actual);
     }
 
@@ -570,7 +614,7 @@ public class KawowyDzienniczekServiceTest {
                 "            }\n" +
                 "        }";
 
-        KawowyDzienniczekService.CoffeePreviewData result = kawowyService.getCoffeePreviewData(response);
+        CoffeePreviewData result = kawowyService.getCoffeePreviewData(response);
         assertEquals(result.getLocalization().getLongitude(), "10.0000");
         assertEquals(result.getDesc(),"description");
         assertEquals(result.getOffer().size(),2);
